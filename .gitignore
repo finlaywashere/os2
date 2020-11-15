@@ -1,0 +1,7 @@
+*.o
+*.d
+iso/
+*.so
+*.img
+*.iso
+*.efi

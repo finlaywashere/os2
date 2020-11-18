@@ -39,7 +39,7 @@ CFLAGS= \
 -Wall			       \
 -I$(INCLUDEDIR)
 
-AFLAGS = -felf64 -g -F dwarf
+AFLAGS = -f bin
 LDFLAGS = -T $(ARCHDIR)/linker.ld -shared -Bsymbolic -nostdlib
 
 .SUFFIXES: .o .c .asm

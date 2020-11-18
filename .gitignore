@@ -1,7 +1,8 @@
 *.o
 *.d
-iso/
+*.elf
 *.so
 *.img
 *.iso
 *.efi
+*.bin

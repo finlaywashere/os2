@@ -1,1 +1,1 @@
-ARCH_OBJS = $(ARCHDIR)/bootloader.o
+STAGE1ARCH_OBJS = $(STAGE1ARCHDIR)/bootloader.o

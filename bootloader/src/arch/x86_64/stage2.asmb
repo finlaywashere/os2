@@ -1,0 +1,13 @@
+bits 64
+org 0x9000
+_start:
+	mov rax, 0xB8000 ; Video memory
+	mov rbx, 0
+.loop:
+	mov byte [rax], 'T'
+	add rax, 2
+	inc ebx
+        cmp ebx, 40
+        jne .loop
+
+	jmp $

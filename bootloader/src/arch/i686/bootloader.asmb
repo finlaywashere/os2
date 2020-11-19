@@ -20,11 +20,15 @@ _start:
 	jne .loop
 	
 	; Load kernel from disk now so we can use the BIOS
-	mov si, read_command
-	mov ah, 0x42
-	mov dl, 0x80 ; Disk number
-	int 0x13
-	
+	mov ah, 0x2 ; Read command
+	mov al, 16 ; Sector count
+	mov ch, 0 ; Cylinder number (0 index)
+	mov cl, 2 ; Sector number (1 index)
+	mov dl, 0x80 ; Drive number
+	mov dh, 0 ; Head number
+	mov bx, 0x9000 ; Buffer location
+	int 0x13 ; Call BIOS
+		
 	cli ; Disable interrupts
 	; Quickly set A20
 	in al, 0x92
@@ -89,16 +93,8 @@ longMode:
 	mov es, rax
 	mov fs, rax
 	mov gs, rax
-	jmp $
+	jmp 0x9000
 section .rodata
-read_command:
-	db 16 ; Packet size
-	db 0 ; Zero
-	dw 16 ; Number of sectors to transfer
-	dw 0x10 ; Data segment for transfer buffer
-	dw 0x9000 ; Transfer buffer address
-	dd 1 ; Lower 32 bits of LBA
-	dd 0 ; Upper 32 bits of LBA
 gdtr:
 	dw 0
 	dd 0
@@ -140,8 +136,6 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 202
+	resb 206
 	db 0x55
 	db 0xAA
-	dq 0xFFFFFFFF
-	dq 0xFFFFFFFF

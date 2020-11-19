@@ -1,25 +1,28 @@
 OSNAME = bootloader-$(NAME)
 
-ARCH = i686
+STAGE1ARCH = i686
+STAGE2ARCH = x86_64
 
 SRCDIR = src
 BUILDDIR = bin
-ARCHDIR = $(SRCDIR)/arch/$(ARCH)
-
+STAGE1ARCHDIR = $(SRCDIR)/arch/$(STAGE1ARCH)
+STAGE2ARCHDIR = $(SRCDIR)/arch/$(STAGE2ARCH)
 AS = nasm
-CC = i686-elf-gcc
+CC = x86_64-elf-gcc
 
-QEMU = qemu-system-i386
+QEMU = qemu-system-x86_64
+ISO = bootloader.iso
 
-include $(ARCHDIR)/Makefile
+include $(STAGE1ARCHDIR)/Makefile
+include $(STAGE2ARCHDIR)/Makefile
 
-OBJS = $(ARCH_OBJS)
+OBJS = $(STAGE1ARCH_OBJS) \
+$(STAGE2ARCH_OBJS)
 
 LINK_LIST=\
 $(LDFLAGS) \
-$(OBJS) \
+$(STAGE2ARCH_OBJS) \
 $(LIBS)
-
 
 INCLUDEDIR=include
 
@@ -41,14 +44,17 @@ CFLAGS= \
 -Wall			       \
 -I$(INCLUDEDIR)
 
-AFLAGS = -f bin
-LDFLAGS = -T $(ARCHDIR)/linker.ld -shared -Bsymbolic -nostdlib
+ABINFLAGS = -f bin
+AFLAGS = -felf64
+LDFLAGS = -T $(STAGE2ARCHDIR)/linker.ld -shared -Bsymbolic -nostdlib
 
-.SUFFIXES: .o .c .asm
+.SUFFIXES: .o .c .asm .asmb
 bootloader: $(OBJS)
 
 .c.o:
 	$(CC) $(CFLAGS) -c $^ -o $@
+.asmb.o:
+	$(AS) $(ABINFLAGS) $^ -o $@
 .asm.o:
 	$(AS) $(AFLAGS) $^ -o $@
 link:
@@ -60,11 +66,15 @@ clean:
 setup:
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(SRCDIR)
-	@mkdir -p $(ARCHDIR)
+	@mkdir -p $(STAGE1ARCHDIR)
+	@mkdir -p $(STAGE2ARCHDIR)
 	@mkdir -p $(INCLUDEDIR)
+iso:
+	cp src/arch/i686/bootloader.o $(ISO)
+	dd if=src/arch/x86_64/stage2.o of=$(ISO) bs=512 seek=1 count=16
 qemu:
-	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -monitor stdio
+	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -monitor stdio
 debug:
-	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -d int
+	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -d int
 gdb:
-	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -d int -s -S
+	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -d int -s -S

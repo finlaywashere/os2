@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 SECTIONS{
-        . = 0x7c00;
+        . = 0x9000;
         .text : {
                 *(.text)
         }
@@ -9,6 +9,6 @@ SECTIONS{
                 *(.rodata)
         }
 
-        _bootloader_end = .;
+        _stage2_end = .;
 }
 

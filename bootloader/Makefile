@@ -63,7 +63,7 @@ setup:
 	@mkdir -p $(ARCHDIR)
 	@mkdir -p $(INCLUDEDIR)
 qemu:
-	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o
+	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -monitor stdio
 debug:
 	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -d int
 gdb:

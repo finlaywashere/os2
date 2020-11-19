@@ -39,7 +39,6 @@ _start:
 bits 32
 protectedMode:
 	mov ecx, 0x8000
-	
 	mov cr3, ecx
 		
 	; Enable PAE
@@ -48,15 +47,30 @@ protectedMode:
         mov cr4, eax ; Move changes to CR4
 	
 	; Set long mode bit in MSR
-        ;mov ecx, 0xC0000080
-        ;rdmsr
-        ;or eax, 1 << 8
-        ;wrmsr
+        mov ecx, 0xC0000080
+        rdmsr
+        or eax, 1 << 8
+        wrmsr
 	
 	; Enable paging
 	mov eax, cr0
 	or eax, 0x80000000
 	mov cr0, eax
+	
+	; Load long mode GDT
+        xor eax, eax
+        mov ax, ds
+        shl eax, 4
+        add eax, GDT2
+        mov [gdtr2 + 2], eax
+        mov eax, GDT2_end
+        sub eax, GDT2
+        mov [gdtr2], ax
+        lgdt [gdtr2]
+	
+	jmp 08h:longMode
+bits 64
+longMode:
 	jmp $
 section .rodata
 gdtr:
@@ -76,10 +90,30 @@ GDT:
         dw 0 ; Data base low
         db 0 ; Data base mid
         db 10010010b ; Data access
-        db 11001111b ; Data flags
+        db 10001111b ; Data flags
+        db 0 ; Data base high
+GDT_end:
+gdtr2:
+        dw 0
+        dd 0
+GDT2:
+        dq 0 ; null segment
+
+        dw 0xFFFF ; Code limit
+        dw 0 ; Code base low
+        db 0 ; Code base mid
+        db 10011010b ; Code access
+        db 10101111b ; Code flags
+        db 0 ; Code base high
+
+        dw 0xFFFF ; Data limit
+        dw 0 ; Data base low
+        db 0 ; Data base mid
+        db 10010010b ; Data access
+        db 10001111b ; Data flags
         db 0 ; Data base high
 
-GDT_end:
-        resb 352
+GDT2_end:
+	resb 258
 	db 0x55
 	db 0xAA

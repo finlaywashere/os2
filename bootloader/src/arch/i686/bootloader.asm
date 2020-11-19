@@ -71,6 +71,12 @@ protectedMode:
 	jmp 08h:longMode
 bits 64
 longMode:
+	mov rax, 0x10
+	mov ds, rax
+	mov ss, rax
+	mov es, rax
+	mov fs, rax
+	mov gs, rax
 	jmp $
 section .rodata
 gdtr:
@@ -82,7 +88,7 @@ GDT:
 	dw 0xFFFF ; Code limit
 	dw 0 ; Code base low
 	db 0 ; Code base mid
-	db 10011010b ; Code access
+	db 10011000b ; Code access
 	db 11001111b ; Code flags
 	db 0 ; Code base high
 
@@ -102,7 +108,7 @@ GDT2:
         dw 0xFFFF ; Code limit
         dw 0 ; Code base low
         db 0 ; Code base mid
-        db 10011010b ; Code access
+        db 10011000b ; Code access
         db 10101111b ; Code flags
         db 0 ; Code base high
 
@@ -114,6 +120,6 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 258
+	resb 246
 	db 0x55
 	db 0xAA

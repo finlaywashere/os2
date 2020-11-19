@@ -9,6 +9,8 @@ ARCHDIR = $(SRCDIR)/arch/$(ARCH)
 AS = nasm
 CC = i686-elf-gcc
 
+QEMU = qemu-system-i386
+
 include $(ARCHDIR)/Makefile
 
 OBJS = $(ARCH_OBJS)
@@ -60,3 +62,9 @@ setup:
 	@mkdir -p $(SRCDIR)
 	@mkdir -p $(ARCHDIR)
 	@mkdir -p $(INCLUDEDIR)
+qemu:
+	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o
+debug:
+	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -d int
+gdb:
+	$(QEMU) --no-reboot -no-shutdown --hda src/arch/i686/bootloader.o -d int -s -S

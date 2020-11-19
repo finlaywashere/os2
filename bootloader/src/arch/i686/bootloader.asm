@@ -5,6 +5,14 @@ section .text
 
 global _start
 _start:
+	mov ecx, 0x8000
+        mov ebx, 0x8003
+        mov [ecx], ebx
+	mov ebx, 0x7003
+	mov [ecx+7*8], ebx
+	mov ebx, 0x8003
+	mov [ecx+8*8], ebx
+	
 	cli ; Disable interrupts
 	; Quickly set A20
 	in al, 0x92
@@ -30,30 +38,24 @@ _start:
 	jmp 08h:protectedMode
 bits 32
 protectedMode:
-	; Enable PAE
-	mov eax, cr4 ; Copy CR4 to eax
-	or eax, 100000b ; Enable the PAE bit
-	mov cr4, eax ; Move changes to CR4
+	mov ecx, 0x8000
 	
-	mov eax, 0x8000 ; Page directory memory
-	mov cr3, eax ; Set it in cr3
-	mov ebx, eax ; Create recursive entry
-	or ebx, 1 ; Set present bit
-	mov [eax], ebx ; Move to the first entry
-	mov ebx, 0x7000 ; Identity paging entry
-	or ebx, 1 ; Set present bit
-	mov eax, 0x8018 ; 7th entry in pd
-	mov [eax], ebx ; Add to pd
+	mov cr3, ecx
+		
+	; Enable PAE
+        mov eax, cr4 ; Copy CR4 to eax
+        or eax, 100000b ; Enable the PAE bit
+        mov cr4, eax ; Move changes to CR4
 	
 	; Set long mode bit in MSR
-        mov ecx, 0xC0000080
-        rdmsr
-        or eax, 1 << 8
-        wrmsr
+        ;mov ecx, 0xC0000080
+        ;rdmsr
+        ;or eax, 1 << 8
+        ;wrmsr
 	
 	; Enable paging
 	mov eax, cr0
-	or eax, 0x80000001
+	or eax, 0x80000000
 	mov cr0, eax
 	jmp $
 section .rodata
@@ -67,14 +69,14 @@ GDT:
 	dw 0 ; Code base low
 	db 0 ; Code base mid
 	db 10011010b ; Code access
-	db 10001111b ; Code flags
+	db 11001111b ; Code flags
 	db 0 ; Code base high
 
 	dw 0xFFFF ; Data limit
         dw 0 ; Data base low
         db 0 ; Data base mid
         db 10010010b ; Data access
-        db 10001111b ; Data flags
+        db 11001111b ; Data flags
         db 0 ; Data base high
 
 GDT_end:

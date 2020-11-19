@@ -1,13 +1,25 @@
 bits 64
 org 0x9000
 _start:
+	; Clear the screen
 	mov rax, 0xB8000 ; Video memory
 	mov rbx, 0
 .loop:
-	mov byte [rax], 'T'
+	mov byte [rax], 0x0
 	add rax, 2
 	inc ebx
-        cmp ebx, 40
+        cmp ebx, 4800
         jne .loop
-
+	
+	; Parse ELF stuff
+	pop rax
+	mov r15, rsp
+	mov rsp, rax
+	add rsp, 0x400 ; 1kB
+	pop rax
+	cmp rax, 0x464C457F
+	jne $
+	mov rax, 0xB8000
+	mov byte [rax], 'G'
+	
 	jmp $

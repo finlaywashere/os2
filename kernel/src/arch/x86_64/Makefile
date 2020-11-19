@@ -1,1 +1,1 @@
-ARCH_OBJS = $(ARCHDIR)/boot.o
+ARCH_OBJS = 

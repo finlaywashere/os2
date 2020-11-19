@@ -5,6 +5,29 @@ section .text
 
 global _start
 _start:
+	mov esp, 0x7000 ; Set stack to be below our code so we've got a bit of space to store data from the BIOS
+	push 0
+	push 0
+	push 0
+	push dx
+	push 0
+	push 0
+	push 0
+	push 0
+	push 0x6000
+	push 0
+	push 0
+	push 0
+	push 0
+	push 0x9000
+	
+	mov di, 0x6000 ; Memory map location
+	mov ebx, 0 ; Clear ebx
+	mov edx, 0x534D4150 ; Magic number
+	mov eax, 0xE820
+	mov ecx, 24
+	int 0x15 ; Call BIOS for memory map
+	
 	; Setup page tables now to save trouble later
 	mov edx, 0x8000
         mov ebx, 0x8003
@@ -21,7 +44,7 @@ _start:
 	
 	; Load kernel from disk now so we can use the BIOS
 	mov ah, 0x2 ; Read command
-	mov al, 16 ; Sector count
+	mov al, 64 ; Sector count
 	mov ch, 0 ; Cylinder number (0 index)
 	mov cl, 2 ; Sector number (1 index)
 	mov dl, 0x80 ; Drive number
@@ -136,6 +159,6 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 206
+	resb 142
 	db 0x55
 	db 0xAA

@@ -1,5 +1,7 @@
 NAME = OS2
 
+QEMU = qemu-system-x86_64
+
 build:
 	
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE)
@@ -9,11 +11,18 @@ clean:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) clean
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) clean
 	@export NAME=$(NAME) && cd bootloader && $(MAKE) clean
+	@rm -f disk.iso
 setup:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd bootloader && $(MAKE) setup
-
+iso:
+	cp bootloader/bootloader.iso disk.iso
+	dd if=kernel/bin/kernel.elf of=disk.iso bs=512 seek=3 count=16
 qemu:
-	qemu-system-x86_64 -m 256M -L /usr/share/edk2-ovmf/x64/ -bios OVMF.fd -cdrom $(BUILDDIR)/$(OSNAME).img
+	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -monitor stdio
+debug:
+	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -d int
+gdb:
+	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -d int -s -S
 

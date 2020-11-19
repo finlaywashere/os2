@@ -5,13 +5,25 @@ section .text
 
 global _start
 _start:
-	mov ecx, 0x8000
+	; Setup page tables now to save trouble later
+	mov edx, 0x8000
         mov ebx, 0x8003
-        mov [ecx], ebx
-	mov ebx, 0x7003
-	mov [ecx+7*8], ebx
-	mov ebx, 0x8003
-	mov [ecx+8*8], ebx
+        mov [edx], ebx
+	mov ecx, 1
+.loop:
+	mov eax, 0x1000 ; 1KiB
+	mul ecx
+	or eax,0b11
+	mov [0x8000 + ecx*8], eax ; map entry
+	inc ecx
+	cmp ecx, 512
+	jne .loop
+	
+	; Load kernel from disk now so we can use the BIOS
+	mov si, read_command
+	mov ah, 0x42
+	mov dl, 0x80 ; Disk number
+	int 0x13
 	
 	cli ; Disable interrupts
 	; Quickly set A20
@@ -79,6 +91,14 @@ longMode:
 	mov gs, rax
 	jmp $
 section .rodata
+read_command:
+	db 16 ; Packet size
+	db 0 ; Zero
+	dw 16 ; Number of sectors to transfer
+	dw 0x10 ; Data segment for transfer buffer
+	dw 0x9000 ; Transfer buffer address
+	dd 1 ; Lower 32 bits of LBA
+	dd 0 ; Upper 32 bits of LBA
 gdtr:
 	dw 0
 	dd 0
@@ -120,6 +140,8 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 246
+	resb 202
 	db 0x55
 	db 0xAA
+	dq 0xFFFFFFFF
+	dq 0xFFFFFFFF

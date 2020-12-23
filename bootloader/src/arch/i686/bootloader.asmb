@@ -45,7 +45,7 @@ _start:
 	or eax,0b11
 	mov [0x5000 + ecx*8], eax ; map entry
 	inc ecx
-	cmp ecx, 17
+	cmp ecx, 512
 	jne .loop
 	
 	; Load kernel from disk now so we can use the BIOS
@@ -165,6 +165,6 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 114
+	resb 110
 	db 0x55
 	db 0xAA

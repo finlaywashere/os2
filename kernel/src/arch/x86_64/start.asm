@@ -11,3 +11,4 @@ global _start
 _start:
 	mov rax, 0xB8000 ; Move video memory to rax
 	mov byte [rax], 'A' 
+	jmp $

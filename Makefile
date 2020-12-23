@@ -25,4 +25,5 @@ debug:
 	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -d int
 gdb:
 	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -d int -s -S
-
+gdbm:
+	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -monitor stdio -s -S

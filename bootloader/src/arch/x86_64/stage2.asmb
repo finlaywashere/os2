@@ -12,13 +12,18 @@ _start:
         jne .loop
 	
 	; Parse ELF stuff
-	pop rax
-	mov r15, rsp
-	mov rsp, rax
-	add rsp, 0x400 ; 1kB
-	pop rax
-	cmp rax, 0x464C457F
+	push rax
+	mov rax, [0xd000]
+	cmp al, 0x7F
 	jne $
+	cmp ah, 0x45
+	jne $
+	mov rax, [0xd002]
+	cmp al, 0x4C
+	jne $
+	cmp ah, 0x46
+	jne $
+	pop rax
 	mov rax, 0xB8000
 	mov byte [rax], 'G'
 	

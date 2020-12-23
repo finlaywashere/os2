@@ -28,17 +28,34 @@ _start:
 	jne $
 	
 	; The kernel was successfully loaded!
+	
+	mov r13, 0x11000 ; Paging physical start
+	mov r11, 0x1000 ; P3 table
+	mov r12, 0x2003
+	mov [r11], r12 ; Map p2 table
+	mov r11, 0x2000 ; P2 table
+	mov r12, 0x10003
+	mov [r11], r12 ; Map p1 table
+	
 	mov rcx, [0xd000+24] ; Put program entry point in rax
 	mov rbx, [0xd000+32] ; Put program header table position in rbx
 	add rbx, 0xd000 ; Add memory offset to program header table
 	
-	mov rax, 0 ; Clear rax
-	mov al, [0xd000+54] ; Size of program header entries
-	
 	mov r14b, [0xd000+56] ; Number of program header entries
 	
-	mov edx, 0 ; Set counter to 0
+	mov rdx, 0 ; Set counter to 0
 	
+.paging:
+	mov rax, 0x1000
+	mul rcx
+	add rax, 0x11000 ; Add physical offset
+	or rax, 0b11
+	mov [0x10000+rcx*8], rax
+	cmp rdx, 512
+	jne .paging
+	mov edx, 0 ; Set counter to 0
+	mov rax, 0 ; Clear rax
+        mov al, [0xd000+54] ; Size of program header entries
 .loop2:
 	cmp rdx, r14
 	jge .loop2end ; Check if the counter is too high and exit

@@ -30,16 +30,22 @@ _start:
 	
 	; Setup page tables now to save trouble later
 	mov edx, 0x8000
-        mov ebx, 0x8003
+        mov ebx, 0x3003
         mov [edx], ebx
+	mov edx, 0x3000
+	mov ebx, 0x4003
+	mov [edx], ebx
+	mov edx, 0x4000
+	mov ebx, 0x5003
+	mov [edx], ebx
 	mov ecx, 1
 .loop:
 	mov eax, 0x1000 ; 1KiB
 	mul ecx
 	or eax,0b11
-	mov [0x8000 + ecx*8], eax ; map entry
+	mov [0x5000 + ecx*8], eax ; map entry
 	inc ecx
-	cmp ecx, 512
+	cmp ecx, 17
 	jne .loop
 	
 	; Load kernel from disk now so we can use the BIOS
@@ -159,6 +165,6 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 142
+	resb 114
 	db 0x55
 	db 0xAA

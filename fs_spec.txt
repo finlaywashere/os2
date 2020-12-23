@@ -1,0 +1,15 @@
+Offset (hex)	|	Size (bytes)	|	Meaning
+
+Parameter block (sector 3 (indexed at 0)):
+
+0x00			4			FS signature, always "FFS2"
+0x04			8			Number of sectors in FS
+0x0C			500			Reserved
+
+Chain block entries :
+
+0x00			8			The next sector in the chain, set to 0 if free and 0xFFFFFFFF if its the end of a chain, and 0xFFFFFFFE if reserved
+
+Chain block :
+
+32x chain block entries per chain block (each entry corresponds to a block on disk in the order given)

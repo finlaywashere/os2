@@ -1,1 +1,1 @@
-ARCH_OBJS = 
+ARCH_OBJS = $(ARCHDIR)/start.o

@@ -13,6 +13,9 @@ _start:
 	
 	; Parse ELF stuff
 	push rax
+	push rbx
+	push rcx
+	push rdx
 	mov rax, [0xd000]
 	cmp al, 0x7F
 	jne $
@@ -23,8 +26,48 @@ _start:
 	jne $
 	cmp ah, 0x46
 	jne $
-	pop rax
-	mov rax, 0xB8000
-	mov byte [rax], 'G'
 	
-	jmp $
+	; The kernel was successfully loaded!
+	mov rcx, [0xd000+24] ; Put program entry point in rax
+	mov rbx, [0xd000+32] ; Put program header table position in rbx
+	add rbx, 0xd000 ; Add memory offset to program header table
+	
+	mov rax, 0 ; Clear rax
+	mov al, [0xd000+54] ; Size of program header entries
+	
+	mov r14b, [0xd000+56] ; Number of program header entries
+	
+	mov edx, 0 ; Set counter to 0
+	
+.loop2:
+	cmp rdx, r14
+	jge .loop2end ; Check if the counter is too high and exit
+	
+	mov esi, [rbx]
+	cmp esi, 1 ; Check if the segment type is loadable
+	jne .loop2end2
+	
+	; It is a loadable segment
+	mov r8, [rdx+8] ; Where the data is on disk
+	add r8, 0xd000 ; Add memory offset
+	mov r9, [rdx+16] ; Where the data needs to go
+	mov r10, [rdx+32] ; Size of the segment
+	mov r11, 0 ; Current memcpy count
+	mov dil, 0 ; Check tmp register
+.memcpy:
+	mov dil, [r8] ; Copy data to register
+	mov [r9], dil ; Copy register to memory
+	inc r8
+	inc r9
+	inc r11
+	cmp r11, r10
+	jne .memcpy
+	
+	cmp rdx, rax
+	jne .loop2end2
+.loop2end2:
+	inc rdx
+	add rbx, rax
+	jmp .loop2
+.loop2end:
+	jmp rax

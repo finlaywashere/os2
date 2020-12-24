@@ -6,20 +6,10 @@ section .text
 global _start
 _start:
 	mov esp, 0x7000 ; Set stack to be below our code so we've got a bit of space to store data from the BIOS
-	push 0
-	push 0
-	push 0
-	push dx
-	push 0
-	push 0
-	push 0
-	push 0
 	push 0x6000
 	push 0
 	push 0
 	push 0
-	push 0
-	push 0x9000
 	
 	mov di, 0x6000 ; Memory map location
 	mov ebx, 0 ; Clear ebx
@@ -31,16 +21,16 @@ _start:
 	; Setup page tables now to save trouble later
 	mov edx, 0x8000
         mov ebx, 0x3003
-        mov [edx], ebx
+        mov [edx], ebx ; Map p3 in p4 table
 	mov edx, 0x3000
 	mov ebx, 0x4003
-	mov [edx], ebx
+	mov [edx], ebx ; Map p2 in p3 table
 	mov edx, 0x4000
 	mov ebx, 0x5003
-	mov [edx], ebx
+	mov [edx], ebx ; Map p1 in p2 table
 	mov ecx, 1
 .loop:
-	mov eax, 0x1000 ; 1KiB
+	mov eax, 0x1000 ; 4KiB
 	mul ecx
 	or eax,0b11
 	mov [0x5000 + ecx*8], eax ; map entry
@@ -165,6 +155,6 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 110
+	resb 130
 	db 0x55
 	db 0xAA

@@ -12,10 +12,6 @@ _start:
         jne .loop
 	
 	; Parse ELF stuff
-	push rax
-	push rbx
-	push rcx
-	push rdx
 	mov rax, [0xd000]
 	cmp al, 0x7F
 	jne $
@@ -34,11 +30,11 @@ _start:
 	mov [r13], r11
 	mov r13, 0x11000 ; Paging physical start
 	mov r11, 0x1000+510*8 ; P3 table
-	mov r12, 0x2003
-	mov [r11], r12 ; Map p2 table
-	mov r11, 0x2000 ; P2 table
 	mov r12, 0x10003
-	mov [r11], r12 ; Map p1 table
+	mov [r11], r12 ; Map p2 table
+	;mov r11, 0x2000 ; P2 table
+	;mov r12, 0x10003
+	;mov [r11], r12 ; Map p1 table
 	
 	mov rcx, [0xd000+24] ; Put program entry point in rcx
 	mov rbx, [0xd000+32] ; Put program header table position in rbx
@@ -49,20 +45,27 @@ _start:
 	mov rdx, 0 ; Set counter to 0
 	
 .paging:
-	mov rax, 0x1000
+	mov rax, 0x200000 ; 2MiB
 	push rdx
 	mul rdx
 	pop rdx
-	add rax, 0x11000 ; Add physical offset
-	or rax, 0b11
+	or rax, 0b10000011
+	mov [0x2000+rdx*8], rax
+	add rax, 0x200000 ; Add physical offset of 2MiB
 	mov [0x10000+rdx*8], rax
 	inc rdx
 	cmp rdx, 512
 	jne .paging
+	
+	mov r11, 0x3000 ; P2 table ; Replace old 4KiB pages with 2MiB pages
+        mov r12, 0x2003
+        mov [r11], r12 ; Map p1 table
+	
 	mov rdx, 0 ; Set counter to 0
 	mov rax, 0 ; Clear rax
-        mov al, [0xd000+54] ; Size of program header entries
+        mov al, [0xd000+56] ; Number of program header entries
 .loop2:
+	inc rdx
 	cmp rdx, r14
 	jge .loop2end ; Check if the counter is too high and exit
 	
@@ -89,7 +92,6 @@ _start:
 	cmp rdx, rax
 	jne .loop2end2
 .loop2end2:
-	inc rdx
 	add rbx, rax
 	jmp .loop2
 .loop2end:

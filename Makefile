@@ -3,8 +3,7 @@ NAME = OS2
 QEMU = qemu-system-x86_64
 
 build:
-	
-	@export NAME=$(NAME) && cd kernel/ && $(MAKE)
+	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link
 	@export NAME=$(NAME) && cd libc/ && $(MAKE)
 	@export NAME=$(NAME) && cd bootloader && $(MAKE)
 clean:

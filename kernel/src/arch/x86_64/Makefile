@@ -1,1 +1,2 @@
-ARCH_OBJS = $(ARCHDIR)/start.o
+ARCH_OBJS = $(ARCHDIR)/start.o \
+$(ARCHDIR)/tty.o

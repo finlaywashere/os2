@@ -12,7 +12,9 @@ CC = x86_64-elf-gcc
 include $(ARCHDIR)/Makefile
 
 OBJS = $(ARCH_OBJS) \
-src/kernel.o
+src/kernel.o \
+src/mem/pmm.o \
+src/utils.o
 
 LINK_LIST=\
 $(LDFLAGS) \

@@ -11,12 +11,6 @@ uint8_t* kmalloc_bitmap;
 uint64_t bitmap_count;
 
 void init_kmalloc(uint64_t memory_size){
-	uint64_t* p4_table = (uint64_t*)0x8000;
-	uint64_t* p3_table = (uint64_t*) (p4_table[511] & 0xFFFFFFFFFFFFF000); // Bootstrap mapping all memory before kernel paging code is initialized
-	for(uint64_t i = 0; i < 16; i++){ // Map 16GiB to 0xffff800000000000
-		uint64_t entry = (0x40000000 * i) | 0b10000011; // Huge, read, write
-		p3_table[i] = entry;
-	}
 	kernel_phys_end = ((uint64_t) &_kernel_end) - KERNEL_VIRT_ADDR;
 	safe_alloc_start = kernel_phys_end + 0x800000; // Add 8MiB buffer after kernel for stacks/general safety
 	bitmap_count = memory_size/8;

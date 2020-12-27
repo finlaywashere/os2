@@ -2,8 +2,10 @@
 #include <stddef.h>
 #include <arch/x86_64/tty.h>
 #include <mem/pmm.h>
+#include <arch/x86_64/paging.h>
 
 void kernel_start(){
+	init_paging();
 	init_kmalloc(1024*100); // Assume 100MiB of memory
 	init_ttys(3);
 	tty_writestring(2,"Successfully booted kernel!");

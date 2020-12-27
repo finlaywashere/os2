@@ -21,7 +21,10 @@ void init_tty(int number){
 	ttys[number].row = 0;
 	ttys[number].col = 0;
 	ttys[number].colour = 0xF; // White foreground and black background
-	ttys[number].buffer = (uint16_t*)kmalloc_p(sizeof(uint16_t)*VGA_PIXELS);
+	if(number != 0)
+		ttys[number].buffer = (uint16_t*) kmalloc_p(sizeof(uint16_t)*VGA_PIXELS);
+	else
+		ttys[number].buffer = (uint16_t*) raw_buffer;
 }
 void set_tty(uint64_t tty){
 	active_tty = tty;
@@ -52,15 +55,7 @@ Copy's a TTY to another TTY
 -1 tty code indicates the raw VGA buffer
 */
 void tty_copy(uint64_t src_tty, uint64_t dst_tty){
-	uint16_t* src_buffer;
-	if(src_tty == -1)
-		src_buffer = (uint64_t*)raw_buffer;
-	else
-		src_buffer = ttys[src_tty].buffer;
-	uint16_t* dst_buffer;
-	if(dst_tty == -1)
-		dst_buffer = (uint16_t*)raw_buffer;
-	else
-		dst_buffer = ttys[dst_tty].buffer;
+	uint16_t* src_buffer = ttys[src_tty].buffer;
+	uint16_t* dst_buffer = ttys[dst_tty].buffer;
 	memcpy((uint8_t*)src_buffer,(uint8_t*)dst_buffer, VGA_PIXELS*2); // Convert shorts to bytes!
 }

@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <mem/pmm.h>
+#include <mem/vmm.h>
 #include <utils.h>
 
 enum vga_colour {

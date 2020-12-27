@@ -4,14 +4,14 @@ const int VGA_WIDTH = 80;
 const int VGA_HEIGHT = 25;
 const int VGA_PIXELS = VGA_WIDTH*VGA_HEIGHT;
 
-uint16_t* raw_buffer = (uint16_t*)0xB8000;
+const uint64_t raw_buffer = (uint16_t*)0xFFFFFF80000B8000;
 
 uint64_t active_tty = 0;
 
 tty_t* ttys;
 
 void init_ttys(int tty_count){
-	ttys = (tty_t*) kmalloc(sizeof(tty_t)*tty_count);
+	ttys = (tty_t*) kmalloc_p(sizeof(tty_t)*tty_count);
 	for(int i = 0; i < tty_count; i++){
 		init_tty(i);
 	}
@@ -21,7 +21,7 @@ void init_tty(int number){
 	ttys[number].row = 0;
 	ttys[number].col = 0;
 	ttys[number].colour = 0xF; // White foreground and black background
-	ttys[number].buffer = (uint16_t*)kmalloc(sizeof(uint16_t)*VGA_PIXELS);
+	ttys[number].buffer = (uint16_t*)kmalloc_p(sizeof(uint16_t)*VGA_PIXELS);
 }
 void set_tty(uint64_t tty){
 	active_tty = tty;
@@ -54,12 +54,12 @@ Copy's a TTY to another TTY
 void tty_copy(uint64_t src_tty, uint64_t dst_tty){
 	uint16_t* src_buffer;
 	if(src_tty == -1)
-		src_buffer = raw_buffer;
+		src_buffer = (uint64_t*)raw_buffer;
 	else
 		src_buffer = ttys[src_tty].buffer;
 	uint16_t* dst_buffer;
 	if(dst_tty == -1)
-		dst_buffer = raw_buffer;
+		dst_buffer = (uint16_t*)raw_buffer;
 	else
 		dst_buffer = ttys[dst_tty].buffer;
 	memcpy((uint8_t*)src_buffer,(uint8_t*)dst_buffer, VGA_PIXELS*2); // Convert shorts to bytes!

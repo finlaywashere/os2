@@ -16,6 +16,7 @@ setup:
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd bootloader && $(MAKE) setup
 iso:
+	export NAME=$(NAME) && cd bootloader && $(MAKE) iso
 	cp bootloader/bootloader.iso disk.iso
 	dd if=kernel/bin/kernel.elf of=disk.iso bs=512 seek=33 count=32
 qemu:

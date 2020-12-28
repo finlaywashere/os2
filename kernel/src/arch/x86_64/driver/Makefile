@@ -1,0 +1,1 @@
+DRIVER_OBJS = $(DRIVERDIR)/pci.o

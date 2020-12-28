@@ -1,3 +1,8 @@
-ARCH_OBJS = $(ARCHDIR)/start.o \
+DRIVERDIR = $(ARCHDIR)/driver/
+include $(DRIVERDIR)/Makefile
+
+ARCH_OBJS = $(DRIVER_OBJS) \
+$(ARCHDIR)/start.o \
 $(ARCHDIR)/tty.o \
-$(ARCHDIR)/paging.o
+$(ARCHDIR)/paging.o \
+$(ARCHDIR)/acpi.o

@@ -13,3 +13,10 @@ uint64_t strlen(char* str){
 		len++;
 	}
 }
+int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count){
+	for(uint64_t i = 0; i < count; i++){
+		if(mem1[i] != mem2[i])
+			return 0;
+	}
+	return 1;
+}

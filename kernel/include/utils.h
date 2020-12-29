@@ -6,6 +6,8 @@
 void memcpy(uint8_t* src, uint8_t* dst, uint64_t count);
 uint64_t strlen(char* str);
 int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count);
+int numlen(uint64_t num, uint64_t base);
+void int_to_str(char* buffer, uint64_t number, uint64_t base);
 
 // IO stuff
 

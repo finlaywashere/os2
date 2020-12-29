@@ -4,6 +4,16 @@ load_idt:
 	lidt [idt_ptr]
 	sti
 	ret
+
+global enable_interrupts
+enable_interrupts:
+	sti
+	ret
+global disable_interrupts
+disable_interrupts:
+	cli
+	ret
+
 %macro push_all 0
 	push rax
 	push rbx
@@ -63,7 +73,7 @@ load_idt:
 	pop rax
 %endmacro
 
-irq_common:
+isr_common:
 	push_all
 	
 	mov ax, 0x10
@@ -73,8 +83,10 @@ irq_common:
 	mov fs, ax
 	mov gs, ax
 	
-	extern irq_handler
-	call irq_handler
+	cld ; DF must be cleared before calling function
+	
+	extern isr_handler
+	call isr_handler
 	
 	pop_all
 	add rsp, 16 ; Skip 2 64 bit ints (error code, and irq number)
@@ -82,9 +94,9 @@ irq_common:
 %macro irq 2
 global irq%1
 irq%1:
-	push byte 0 
+	push byte 0
 	push byte %2
-	jmp irq_common
+	jmp isr_common
 %endmacro
 
 irq 0, 32
@@ -104,3 +116,50 @@ irq 13, 45
 irq 14, 46
 irq 15, 47
 
+%macro ISR_NOERRORCODE 1
+global isr%1
+isr%1:
+	push byte 0
+	push byte %1
+	jmp isr_common
+%endmacro
+
+%macro ISR_ERRORCODE 1
+global isr%1
+isr%1:
+	push byte %1
+	jmp isr_common
+%endmacro
+
+ISR_NOERRORCODE 0
+ISR_NOERRORCODE 1
+ISR_NOERRORCODE 2
+ISR_NOERRORCODE 3
+ISR_NOERRORCODE 4
+ISR_NOERRORCODE 5
+ISR_NOERRORCODE 6
+ISR_NOERRORCODE 7
+ISR_ERRORCODE 8
+ISR_NOERRORCODE 9
+ISR_ERRORCODE 10
+ISR_ERRORCODE 11
+ISR_ERRORCODE 12
+ISR_ERRORCODE 13
+ISR_ERRORCODE 14
+ISR_NOERRORCODE 15
+ISR_NOERRORCODE 16
+ISR_NOERRORCODE 17
+ISR_NOERRORCODE 18
+ISR_NOERRORCODE 19
+ISR_NOERRORCODE 20
+ISR_NOERRORCODE 21
+ISR_NOERRORCODE 22
+ISR_NOERRORCODE 23
+ISR_NOERRORCODE 24
+ISR_NOERRORCODE 25
+ISR_NOERRORCODE 26
+ISR_NOERRORCODE 27
+ISR_NOERRORCODE 28
+ISR_NOERRORCODE 29
+ISR_NOERRORCODE 30
+ISR_NOERRORCODE 31

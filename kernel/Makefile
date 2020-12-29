@@ -15,7 +15,8 @@ OBJS = $(ARCH_OBJS) \
 src/kernel.o \
 src/mem/pmm.o \
 src/mem/vmm.o \
-src/utils.o
+src/utils.o \
+src/log.o
 
 LINK_LIST=\
 $(LDFLAGS) \

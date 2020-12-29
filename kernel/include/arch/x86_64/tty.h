@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 #include <mem/vmm.h>
@@ -37,4 +39,5 @@ void set_tty(uint64_t tty);
 void tty_copy(uint64_t src_tty, uint64_t dst_tty);
 void tty_putchars(uint64_t tty, char* characters, uint64_t count);
 void tty_writestring(uint64_t tty, char* str);
-
+void tty_setcolour(uint64_t tty, uint8_t foreground, uint8_t background);
+uint8_t tty_getcolour(uint64_t tty);

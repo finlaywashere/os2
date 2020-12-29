@@ -4,7 +4,7 @@ const int VGA_WIDTH = 80;
 const int VGA_HEIGHT = 25;
 const int VGA_PIXELS = VGA_WIDTH*VGA_HEIGHT;
 
-const uint64_t raw_buffer = (uint16_t*)0xFFFFFF80000B8000;
+const uint64_t raw_buffer = 0xFFFFFF80000B8000;
 
 uint64_t active_tty = 0;
 
@@ -35,10 +35,16 @@ void tty_putchar(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char 
 }
 void tty_putchars(uint64_t tty, char* characters, uint64_t count){
 	for(uint64_t i = 0; i < count; i++){
+		char c = characters[i];
+		if(c == '\n'){
+			ttys[tty].col = 0;
+			ttys[tty].row++;
+			continue;
+		}
 		uint16_t row = ttys[tty].row;
 		uint16_t col = ttys[tty].col;
 		uint8_t colour = ttys[tty].colour;
-		tty_putchar(tty,row,col,colour,characters[i]);
+		tty_putchar(tty,row,col,colour,c);
 		ttys[tty].col++;
 		if(ttys[tty].col >= VGA_WIDTH){
 			ttys[tty].col = 0;
@@ -58,4 +64,11 @@ void tty_copy(uint64_t src_tty, uint64_t dst_tty){
 	uint16_t* src_buffer = ttys[src_tty].buffer;
 	uint16_t* dst_buffer = ttys[dst_tty].buffer;
 	memcpy((uint8_t*)src_buffer,(uint8_t*)dst_buffer, VGA_PIXELS*2); // Convert shorts to bytes!
+}
+void tty_setcolour(uint64_t tty, uint8_t foreground, uint8_t background){
+	uint8_t colour = (((uint16_t)background) << 4) | foreground;
+	ttys[tty].colour = colour;
+}
+uint8_t tty_getcolour(uint64_t tty){
+	return ttys[tty].colour;
 }

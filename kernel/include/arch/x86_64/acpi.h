@@ -31,4 +31,5 @@ typedef struct acpi_header acpi_header_t;
 
 void init_acpi();
 int acpi_checksum(acpi_header_t* header);
+acpi_header_t* get_acpi_table(char* sig);
 

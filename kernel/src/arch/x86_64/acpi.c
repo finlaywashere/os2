@@ -31,7 +31,7 @@ void init_acpi(){
 		panic("RSDP header invalid!");
 	}
 	log_verb("Found valid RSDP!\n");
-	acpi_header_t* rsdt = (acpi_header_t*)(((uint64_t)rsdp->rsdt)+0xffffff8000000000);
+	rsdt = (acpi_header_t*)(((uint64_t)rsdp->rsdt)+0xffffff8000000000);
 	if(acpi_checksum(rsdt) == 0){
 		panic("RSDT header invalid!");
 	}
@@ -56,4 +56,19 @@ int acpi_checksum(acpi_header_t* header){
 		sum += ((uint8_t*)header)[i];
 	}
 	return sum == 0;
+}
+acpi_header_t* get_acpi_table(char* sig){
+	uint32_t* tables = ((uint64_t)rsdt)+sizeof(acpi_header_t);
+        uint32_t numTables = (rsdt->length-sizeof(acpi_header_t))/sizeof(uint32_t);
+	for(uint32_t i = 0; i < numTables; i++){
+		acpi_header_t* table = ((uint64_t)tables[i])+0xffffff8000000000;
+		if(memcmp(table->sig,sig,4) == 0){
+			if(acpi_checksum(table) == 0){
+                        	log_error("Found invalid ACPI table, name: ");
+                        	panicl(table->sig,4);
+                	}
+			return table;
+		}
+	}
+	return (acpi_header_t*) 0x0;
 }

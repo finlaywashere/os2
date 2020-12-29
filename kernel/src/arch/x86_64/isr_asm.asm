@@ -4,8 +4,7 @@ load_idt:
 	lidt [idt_ptr]
 	sti
 	ret
-
-push_all:
+%macro push_all 0
 	push rax
 	push rbx
 	push rcx
@@ -33,8 +32,9 @@ push_all:
 	push rax
 	mov rax, gs
 	push rax
-
-pop_all:
+%endmacro
+	
+%macro pop_all 0
 	pop rax
 	mov gs, ax
 	pop rax
@@ -61,9 +61,10 @@ pop_all:
 	pop rcx
 	pop rbx
 	pop rax
+%endmacro
 
 irq_common:
-	call push_all
+	push_all
 	
 	mov ax, 0x10
 	mov ds, ax
@@ -75,7 +76,7 @@ irq_common:
 	extern irq_handler
 	call irq_handler
 	
-	call pop_all
+	pop_all
 	add rsp, 16 ; Skip 2 64 bit ints (error code, and irq number)
 	iretq
 %macro irq 2

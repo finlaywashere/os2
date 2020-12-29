@@ -35,7 +35,8 @@ void init_idt(){
 	set_idt_gate(46, (uint64_t) &irq14, 0x08, 0x8e);
 	set_idt_gate(47, (uint64_t) &irq15, 0x08, 0x8e);
 	
-	idt_ptr.base = get_physical_addr((uint64_t) idt);
+	// The base is linear
+	idt_ptr.base = (uint64_t) idt;//get_physical_addr((uint64_t) idt);
 	idt_ptr.limit = sizeof(idt_t)*256;
 	load_idt();
 }
@@ -49,5 +50,10 @@ void set_idt_gate(int index, uint64_t addr, uint16_t selector, uint8_t type){
 	idt[index].selector = selector;
 }
 void irq_handler(registers_t regs){
+	if(regs.interrupt >= 40){
+		// Send more EOI's
+		outb(0xA0,0x20);
+	}
+	outb(0x20,0x20); // EOI
 	log_error("Received IRQ!");
 }

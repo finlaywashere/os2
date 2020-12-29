@@ -1,5 +1,4 @@
-#include <stdint.h>
-#include <stddef.h>
+
 #include <arch/x86_64/tty.h>
 #include <mem/pmm.h>
 #include <arch/x86_64/paging.h>
@@ -12,7 +11,7 @@ void kernel_start(){
 	init_kmalloc(1024*100); // Assume 100MiB of memory
 	init_ttys(1);
 	log_debug("Initialized core kernel!\n");
-	//init_idt();
+	init_idt();
 	log_debug("Initialized IDT!\n");
 	init_acpi();
 	log_debug("Initialized ACPI!\n");

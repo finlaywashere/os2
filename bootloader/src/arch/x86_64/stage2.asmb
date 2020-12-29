@@ -28,13 +28,9 @@ _start:
 	mov r13, 0x8000+511*8 ; P4 start
 	mov r11, 0x1003
 	mov [r13], r11
-	mov r13, 0x11000 ; Paging physical start
 	mov r11, 0x1000+510*8 ; P3 table
-	mov r12, 0x10003
+	mov r12, 0xa003
 	mov [r11], r12 ; Map p2 table
-	;mov r11, 0x2000 ; P2 table
-	;mov r12, 0x10003
-	;mov [r11], r12 ; Map p1 table
 	
 	mov rcx, [0xd000+24] ; Put program entry point in rcx
 	mov rbx, [0xd000+32] ; Put program header table position in rbx
@@ -52,7 +48,7 @@ _start:
 	or rax, 0b10000011
 	mov [0x2000+rdx*8], rax
 	add rax, 0x200000 ; Add physical offset of 2MiB
-	mov [0x10000+rdx*8], rax
+	mov [0xa000+rdx*8], rax
 	inc rdx
 	cmp rdx, 512
 	jne .paging

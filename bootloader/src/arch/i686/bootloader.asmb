@@ -39,13 +39,9 @@ _start:
 	jne .loop
 	
 	; Load kernel from disk now so we can use the BIOS
-	mov ah, 0x2 ; Read command
-	mov al, 64 ; Sector count
-	mov ch, 0 ; Cylinder number (0 index)
-	mov cl, 2 ; Sector number (1 index)
-	mov dl, 0x80 ; Drive number
-	mov dh, 0 ; Head number
-	mov bx, 0x9000 ; Buffer location
+	mov ah, 0x42 ; LBA Read command
+	mov dl, 0x80 ; Use default drive
+	mov si, disk_packet ; Set packet location
 	int 0x13 ; Call BIOS
 		
 	cli ; Disable interrupts
@@ -155,6 +151,16 @@ GDT2:
         db 0 ; Data base high
 
 GDT2_end:
-	resb 130
+align 32 ; Packet must be on 4 byte boundary
+disk_packet:
+	db 16 ; Size of packet
+	db 0 ; Zero
+	dw 64 ; Number of sectors
+	dw 0x9000 ; Buffer offset
+	dw 0 ; Buffer segment
+	dd 1 ; Lower 32 bits of starting LBA
+	dd 0 ; Upper 32 bits of starting LBA
+boot_header:
+	resb 110
 	db 0x55
 	db 0xAA

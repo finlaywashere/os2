@@ -45,6 +45,14 @@ void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bu
                 int_to_str(buf,subclass_code,16);
                 log_debugl(buf,len);
                 kfree_p((void*) buf,len);
+		log_debug(" 0x");
+		
+		len = numlen(prog_if,16);
+                buf = (char*) kmalloc_p(len);
+                int_to_str(buf,prog_if,16);
+                log_debugl(buf,len);
+                kfree_p((void*) buf,len);
+		
 		log_debug("!\n");
 	}
 	
@@ -82,7 +90,7 @@ void check_device(uint8_t bus, uint8_t device, pci_bus_t *bus_ptr){
 	uint16_t vendor = pci_config_read(bus,device,function,0);
 	if(vendor == 0xFFFF) return;
 	check_function(bus,device,function,bus_ptr);
-	uint8_t header = pci_config_read(bus,device,function,14) >> 8;
+	uint8_t header = (uint8_t) pci_config_read(bus,device,function,14);
 	if((header & 0x80) != 0){
 		for(function = 1; function < 8; function++){
 			vendor = pci_config_read(bus,device,function,0);

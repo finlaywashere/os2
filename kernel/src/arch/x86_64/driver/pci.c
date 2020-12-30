@@ -1,4 +1,5 @@
 #include <arch/x86_64/driver/pci.h>
+#include <log.h>
 
 void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bus_ptr){
 	uint16_t vendor = pci_config_read(bus,device,function,0);
@@ -29,6 +30,23 @@ void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bu
 	uint8_t min_grant = (uint8_t) pci_config_read(bus,device,function,62);
 	uint8_t max_latency  = pci_config_read(bus,device,function,62) >> 8;
 	pci_function_t* func = &(bus_ptr[bus].devices[device].functions[function]);
+	
+	if(class_code != 0xff){
+		log_debug("Found PCI device, 0x");
+		uint64_t len = numlen(class_code,16);
+                char* buf = (char*) kmalloc_p(len);
+                int_to_str(buf,class_code,16);
+                log_debugl(buf,len);
+                kfree_p((void*) buf,len);
+		log_debug(" 0x");
+		
+		len = numlen(subclass_code,16);
+                buf = (char*) kmalloc_p(len);
+                int_to_str(buf,subclass_code,16);
+                log_debugl(buf,len);
+                kfree_p((void*) buf,len);
+		log_debug("!\n");
+	}
 	
 	func->vendor = vendor;
 	func->device = device_id;
@@ -62,7 +80,7 @@ void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bu
 void check_device(uint8_t bus, uint8_t device, pci_bus_t *bus_ptr){
 	uint8_t function = 0;
 	uint16_t vendor = pci_config_read(bus,device,function,0);
-	if(vendor == 0xFFFF) return 0;
+	if(vendor == 0xFFFF) return;
 	check_function(bus,device,function,bus_ptr);
 	uint8_t header = pci_config_read(bus,device,function,14) >> 8;
 	if((header & 0x80) != 0){

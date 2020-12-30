@@ -2,6 +2,8 @@ NAME = OS2
 
 QEMU = qemu-system-x86_64
 
+QEMUFLAGS = --no-reboot -no-shutdown -drive file=disk.iso,if=ide
+
 build:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link
 	@export NAME=$(NAME) && cd libc/ && $(MAKE)
@@ -18,10 +20,10 @@ clean:
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd bootloader && $(MAKE) setup
 qemu:
-	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -monitor stdio
+	$(QEMU) $(QEMUFLAGS) -monitor stdio
 debug:
-	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -d int
+	$(QEMU) $(QEMUFLAGS) -d int
 gdb:
-	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -d int -s -S
+	$(QEMU) $(QEMUFLAGS) -d int -s -S
 gdbm:
-	$(QEMU) --no-reboot -no-shutdown --hda disk.iso -monitor stdio -s -S
+	$(QEMU) $(QEMUFLAGS) -monitor stdio -s -S

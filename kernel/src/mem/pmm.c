@@ -30,11 +30,12 @@ void init_kmalloc(uint64_t memory_size){
 }
 
 void* kmalloc(uint64_t size){
+	size /= 1024; // 1KiB pages
 	for(uint64_t i = safe_alloc_kib/8; i < bitmap_count; i++){ // Start looking after the safe allocation point to save cpu cycles
 		uint8_t found = 1;
 		uint64_t j;
 		for(j = 0; j < size; j++){
-			uint64_t index = (i + j) / 8;
+			uint64_t index = i + (j / 8);
 			uint64_t bit = (i + j) % 8;
 			uint8_t value = kmalloc_bitmap[index] & (1 << bit);
 			if(value == 0){
@@ -44,15 +45,12 @@ void* kmalloc(uint64_t size){
 		}
 		if(found == 1){
 			for(j = 0; j < size; j++){
-				uint64_t index = (i + j) / 8;
+				uint64_t index = i + (j / 8);
                         	uint64_t bit = (i + j) % 8;
 				uint8_t entry = kmalloc_bitmap[index] & !(1 << bit);
 				kmalloc_bitmap[index] = entry;
 			}
 			return (void*)(i*1024*8);
-		}else{
-			i += j/8; // Increase by how many we looked at so we know to skip over those
-			continue;
 		}
 	}
 	return (void*) 0x0;

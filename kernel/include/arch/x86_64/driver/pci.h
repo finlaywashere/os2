@@ -2,8 +2,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <mem/vmm.h>
+#include <utils.h>
 
-struct pci_header{
+struct pci_function{
 	uint16_t vendor;
 	uint16_t device;
 	uint16_t command;
@@ -34,9 +36,21 @@ struct pci_header{
 	uint8_t interrupt_pin;
 	uint8_t min_grant;
 	uint8_t max_latency;
-}__attribute__((packed));
+};
 
-typedef struct pci_header pci_header_t;
+typedef struct pci_function pci_function_t;
+
+struct pci_device{
+	pci_function_t functions[8];
+};
+typedef struct pci_device pci_device_t;
+
+struct pci_bus{
+	pci_device_t devices[32];
+};
+typedef struct pci_bus pci_bus_t;
+
 
 void init_pci();
+uint16_t pci_config_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset);
 

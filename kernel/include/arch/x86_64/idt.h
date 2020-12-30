@@ -40,6 +40,10 @@ struct registers{
 
 typedef struct registers registers_t;
 
+// Convenient ways to enable/disable interrupts for important code
+extern void enable_interrupts();
+extern void disable_interrupts();
+
 extern void load_idt();
 
 extern void isr0();

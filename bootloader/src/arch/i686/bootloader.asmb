@@ -155,7 +155,7 @@ align 32 ; Packet must be on 4 byte boundary
 disk_packet:
 	db 16 ; Size of packet
 	db 0 ; Zero
-	dw 64 ; Number of sectors
+	dw 127 ; Number of sectors
 	dw 0x9000 ; Buffer offset
 	dw 0 ; Buffer segment
 	dd 1 ; Lower 32 bits of starting LBA

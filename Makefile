@@ -8,7 +8,7 @@ build:
 	@export NAME=$(NAME) && cd bootloader && $(MAKE)
 	export NAME=$(NAME) && cd bootloader && $(MAKE) iso
 	cp bootloader/bootloader.iso disk.iso
-	dd if=kernel/bin/kernel.elf of=disk.iso bs=512 seek=33 count=32
+	dd if=kernel/bin/kernel.elf of=disk.iso bs=512 seek=33 count=94
 clean:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) clean
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) clean

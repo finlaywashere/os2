@@ -5,6 +5,7 @@
 #include <arch/x86_64/acpi.h>
 #include <log.h>
 #include <arch/x86_64/idt.h>
+#include <arch/x86_64/driver/pci.h>
 
 void kernel_start(){
 	init_paging();
@@ -15,6 +16,8 @@ void kernel_start(){
 	log_debug("Initialized IDT!\n");
 	init_acpi();
 	log_debug("Initialized ACPI!\n");
+	init_pci();
+	log_debug("Initialized PCI!\n");
 	while(1){
 		// Infinite loop
 	}

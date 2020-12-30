@@ -30,7 +30,7 @@ void init_kmalloc(uint64_t memory_size){
 }
 
 void* kmalloc(uint64_t size){
-	size /= 1024; // 1KiB pages
+	size = size/1024 + ((size % 1024) > 0 ? 1 : 0); // 1KiB pages
 	for(uint64_t i = safe_alloc_kib/8; i < bitmap_count; i++){ // Start looking after the safe allocation point to save cpu cycles
 		uint8_t found = 1;
 		uint64_t j;

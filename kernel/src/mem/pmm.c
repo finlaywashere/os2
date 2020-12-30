@@ -30,6 +30,9 @@ void init_kmalloc(uint64_t memory_size){
 }
 
 void* kmalloc(uint64_t size){
+	// This is a very dumb way to do it, once 1 part of a 8KiB page represented by one of these bytes is set then the whole page is effectively allocated
+	// I'm going to leave making this better as a future todo
+	// TODO: Improve this
 	size = size/1024 + ((size % 1024) > 0 ? 1 : 0); // 1KiB pages
 	for(uint64_t i = safe_alloc_kib/8; i < bitmap_count; i++){ // Start looking after the safe allocation point to save cpu cycles
 		uint8_t found = 1;
@@ -56,5 +59,14 @@ void* kmalloc(uint64_t size){
 	return (void*) 0x0;
 }
 void kfree(void* base, uint64_t size){
-	//TODO: Implement kfree!
+	uint64_t addr = (uint64_t) base;
+	size = size/1024 + ((size % 1024) > 0 ? 1 : 0); // 1KiB pages
+	uint64_t i = addr/(1024*8);
+	uint64_t end = i + size;
+	for(; i < end; i++){
+		uint64_t page_index = i / 8;
+		uint64_t page_bit = i % 8;
+		uint8_t entry = kmalloc_bitmap[page_index] & !(1 << page_bit);
+		kmalloc_bitmap[page_index] = entry;
+	}
 }

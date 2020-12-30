@@ -21,6 +21,8 @@ int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count){
 	return 1;
 }
 int numlen(uint64_t num, uint64_t base){
+	if(num == 0)
+		return 1;
 	int i = 0;
 	while(num > 0){
 		num /= base;

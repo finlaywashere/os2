@@ -6,6 +6,7 @@
 #include <mem/vmm.h>
 #include <arch/x86_64/paging.h>
 #include <log.h>
+#include <arch/x86_64/pit.h>
 
 struct idt{
 	uint16_t offset_low;

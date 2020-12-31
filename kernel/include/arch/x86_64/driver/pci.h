@@ -6,6 +6,9 @@
 #include <utils.h>
 
 struct pci_function{
+	uint8_t bus_num;
+	uint8_t device_num;
+	uint8_t function_num;
 	uint16_t vendor;
 	uint16_t device;
 	uint16_t command;
@@ -57,4 +60,5 @@ typedef struct pci pci_t;
 
 void init_pci();
 uint16_t pci_config_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset);
+pci_function_t* get_function_by_class(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if);
 

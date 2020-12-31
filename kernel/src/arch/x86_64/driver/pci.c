@@ -33,6 +33,10 @@ void check_function(uint8_t bus, uint8_t device, uint8_t function){
 	uint8_t max_latency  = pci_config_read(bus,device,function,62) >> 8;
 	pci_function_t* func = &(pci->busses[bus].devices[device].functions[function]);
 	
+	func->bus_num = bus;
+	func->device_num = device;
+	func->function_num = function;
+	
 	func->vendor = vendor;
 	func->device = device_id;
 	func->command = command;
@@ -117,10 +121,27 @@ void print_pci_info(){
 }
 
 void init_pci(){
-	pci = (pci_bus_t*) kmalloc_p(sizeof(pci_t));
-	//memset((uint8_t*)pci,0xFF,sizeof(pci_t));
+	pci = (pci_t*) kmalloc_p(sizeof(pci_t));
 	check_bus(0);
-	print_pci_info();
+}
+pci_function_t* get_function_by_class(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if){
+	// If any values are -1 then don't check them
+	for(int bus = 0; bus < 256; bus++){
+                for(int device = 0; device < 32; device++){
+                        for(int function = 0; function < 8; function++){
+                                pci_function_t* func = &pci->busses[bus].devices[device].functions[function];
+				if(func->class_code == 0xFF || func->class_code == 0)
+                                        continue;
+				if(func->class_code == class_code || class_code == -1){
+					if(func->subclass_code == subclass_code || subclass_code == -1){
+						if(func->prog_if == prog_if || prog_if == -1)
+							return func;
+					}
+				}
+			}
+		}
+	}
+	return 0x0;
 }
 
 uint16_t pci_config_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset){

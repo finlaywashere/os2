@@ -30,12 +30,10 @@ void init_acpi(){
 	if(sum != 0){
 		panic("RSDP header invalid!");
 	}
-	log_verb("Found valid RSDP!\n");
 	rsdt = (acpi_header_t*)(((uint64_t)rsdp->rsdt)+0xffffff8000000000);
 	if(acpi_checksum(rsdt) == 0){
 		panic("RSDT header invalid!");
 	}
-	log_verb("Found valid RSDT!\n");
 	uint32_t* tables = ((uint64_t)rsdt)+sizeof(acpi_header_t);
 	uint32_t numTables = (rsdt->length-sizeof(acpi_header_t))/sizeof(uint32_t);
 	for(uint32_t i = 0; i < numTables; i++){

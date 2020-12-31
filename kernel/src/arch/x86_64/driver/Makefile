@@ -1,1 +1,2 @@
-DRIVER_OBJS = $(DRIVERDIR)/pci.o
+DRIVER_OBJS = $(DRIVERDIR)/pci.o \
+$(DRIVERDIR)/ide.o

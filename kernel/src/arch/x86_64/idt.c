@@ -97,4 +97,6 @@ void isr_handler(registers_t regs){
 		kfree_p((void*) buf,len);
 		log_error("!\n");
 	}
+	if(regs.interrupt == 32)
+		pit_count();
 }

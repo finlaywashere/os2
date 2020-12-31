@@ -2,7 +2,7 @@
 
 volatile uint64_t ticks = 0;
 void init_pit(){
-	int divisor = 1193182 / 10; // Trigger every lil bit
+	int divisor = 1193182 / 1000; // Trigger every 1ms
 
 	outb(0x43, 0x36);
 

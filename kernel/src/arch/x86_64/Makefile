@@ -8,3 +8,7 @@ $(ARCHDIR)/paging.o \
 $(ARCHDIR)/idt.o \
 $(ARCHDIR)/isr_asm.o \
 $(ARCHDIR)/acpi.o \
+$(ARCHDIR)/gdt.o \
+$(ARCHDIR)/gdt_asm.o \
+
+

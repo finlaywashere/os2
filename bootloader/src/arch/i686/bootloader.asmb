@@ -56,9 +56,7 @@ _start:
 	shl eax, 4
 	add eax, GDT
 	mov [gdtr + 2], eax
-	mov eax, GDT_end
-	sub eax, GDT
-	mov [gdtr], ax
+	
 	lgdt [gdtr]
 	
 	; Enter protected mode
@@ -94,9 +92,6 @@ protectedMode:
         shl eax, 4
         add eax, GDT2
         mov [gdtr2 + 2], eax
-        mov eax, GDT2_end
-        sub eax, GDT2
-        mov [gdtr2], ax
         lgdt [gdtr2]
 	
 	jmp 08h:longMode
@@ -111,7 +106,7 @@ longMode:
 	jmp 0x9000
 section .rodata
 gdtr:
-	dw 0
+	dw 0x17
 	dd 0
 GDT:
 	dq 0 ; null segment
@@ -131,7 +126,7 @@ GDT:
         db 0 ; Data base high
 GDT_end:
 gdtr2:
-        dw 0
+        dw 0x17
         dd 0
 GDT2:
         dq 0 ; null segment
@@ -155,12 +150,12 @@ align 32 ; Packet must be on 4 byte boundary
 disk_packet:
 	db 16 ; Size of packet
 	db 0 ; Zero
-	dw 127 ; Number of sectors
+	dw 127 ; Number of sectors, some BIOS's might restrict to being 127
 	dw 0x9000 ; Buffer offset
 	dw 0 ; Buffer segment
 	dd 1 ; Lower 32 bits of starting LBA
 	dd 0 ; Upper 32 bits of starting LBA
 boot_header:
-	resb 110
+	resb 142
 	db 0x55
 	db 0xAA

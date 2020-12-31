@@ -6,18 +6,22 @@
 #include <log.h>
 #include <arch/x86_64/idt.h>
 #include <arch/x86_64/driver/pci.h>
+#include <arch/x86_64/gdt.h>
 
 void kernel_start(){
 	init_paging();
 	init_kmalloc(1024*100); // Assume 100MiB of memory
 	init_ttys(1);
 	log_debug("Initialized core kernel!\n");
+	init_gdt();
+	log_debug("Initialized GDT!\n");
 	init_idt();
 	log_debug("Initialized IDT!\n");
 	init_acpi();
 	log_debug("Initialized ACPI!\n");
 	init_pci();
 	log_debug("Initialized PCI!\n");
+	asm volatile("int $1");
 	while(1){
 		// Infinite loop
 	}

@@ -50,6 +50,10 @@ struct pci_bus{
 };
 typedef struct pci_bus pci_bus_t;
 
+struct pci{
+	pci_bus_t busses[256];
+};
+typedef struct pci pci_t;
 
 void init_pci();
 uint16_t pci_config_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset);

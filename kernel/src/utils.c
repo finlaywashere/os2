@@ -20,6 +20,11 @@ int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count){
 	}
 	return 1;
 }
+void memset(uint8_t* buf, uint8_t val, uint64_t count){
+	for(uint64_t i = 0; i < count; i++){
+		buf[i] = val;
+	}
+}
 int numlen(uint64_t num, uint64_t base){
 	if(num == 0)
 		return 1;

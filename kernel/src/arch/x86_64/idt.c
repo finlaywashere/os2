@@ -70,7 +70,7 @@ void init_idt(){
 	
 	// The base is linear
 	idt_ptr.base = (uint64_t) idt;//get_physical_addr((uint64_t) idt);
-	idt_ptr.limit = sizeof(idt_t)*256;
+	idt_ptr.limit = sizeof(idt_t)*256-1;
 	load_idt();
 }
 void set_idt_gate(int index, uint64_t addr, uint16_t selector, uint8_t type){

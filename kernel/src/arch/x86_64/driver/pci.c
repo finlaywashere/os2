@@ -1,7 +1,9 @@
 #include <arch/x86_64/driver/pci.h>
 #include <log.h>
 
-void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bus_ptr){
+pci_t* pci;
+
+void check_function(uint8_t bus, uint8_t device, uint8_t function){
 	uint16_t vendor = pci_config_read(bus,device,function,0);
 	uint16_t device_id = pci_config_read(bus,device,function,2);
 	uint16_t command = pci_config_read(bus,device,function,4);
@@ -29,32 +31,7 @@ void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bu
 	uint8_t interrupt_pin = pci_config_read(bus,device,function,60) >> 8;
 	uint8_t min_grant = (uint8_t) pci_config_read(bus,device,function,62);
 	uint8_t max_latency  = pci_config_read(bus,device,function,62) >> 8;
-	pci_function_t* func = &(bus_ptr[bus].devices[device].functions[function]);
-	
-	if(class_code != 0xff){
-		log_debug("Found PCI device, 0x");
-		uint64_t len = numlen(class_code,16);
-                char* buf = (char*) kmalloc_p(len);
-                int_to_str(buf,class_code,16);
-                log_debugl(buf,len);
-                kfree_p((void*) buf,len);
-		log_debug(" 0x");
-		
-		len = numlen(subclass_code,16);
-                buf = (char*) kmalloc_p(len);
-                int_to_str(buf,subclass_code,16);
-                log_debugl(buf,len);
-                kfree_p((void*) buf,len);
-		log_debug(" 0x");
-		
-		len = numlen(prog_if,16);
-                buf = (char*) kmalloc_p(len);
-                int_to_str(buf,prog_if,16);
-                log_debugl(buf,len);
-                kfree_p((void*) buf,len);
-		
-		log_debug("!\n");
-	}
+	pci_function_t* func = &(pci->busses[bus].devices[device].functions[function]);
 	
 	func->vendor = vendor;
 	func->device = device_id;
@@ -85,29 +62,65 @@ void check_function(uint8_t bus, uint8_t device, uint8_t function, pci_bus_t *bu
 	func->max_latency = max_latency;
 }
 
-void check_device(uint8_t bus, uint8_t device, pci_bus_t *bus_ptr){
+void check_device(uint8_t bus, uint8_t device){
 	uint8_t function = 0;
 	uint16_t vendor = pci_config_read(bus,device,function,0);
 	if(vendor == 0xFFFF) return;
-	check_function(bus,device,function,bus_ptr);
+	check_function(bus,device,function);
 	uint8_t header = (uint8_t) pci_config_read(bus,device,function,14);
 	if((header & 0x80) != 0){
 		for(function = 1; function < 8; function++){
 			vendor = pci_config_read(bus,device,function,0);
 			if(vendor != 0xFFFF)
-				check_function(bus,device,function,bus_ptr);
+				check_function(bus,device,function);
 		}
 	}
 }
-void check_bus(uint8_t busNum, pci_bus_t* bus){
+void check_bus(uint8_t busNum){
 	for(uint8_t device = 0; device < 32; device++){
-		check_device(busNum,device,bus);
+		check_device(busNum,device);
+	}
+}
+
+void print_pci_info(){
+	for(int bus = 0; bus < 256; bus++){
+		for(int device = 0; device < 32; device++){
+			for(int function = 0; function < 8; function++){
+				pci_function_t func = pci->busses[bus].devices[device].functions[function];
+				if(func.class_code == 0xFF || func.class_code == 0x0)
+					continue;
+				log_debug("Found PCI device, 0x");
+		                uint64_t len = numlen(func.class_code,16);
+        		        char* buf = (char*) kmalloc_p(len);
+        		        int_to_str(buf,func.class_code,16);
+        		        log_debugl(buf,len);
+                		kfree_p((void*) buf,len);
+                		log_debug(" 0x");
+				
+		                len = numlen(func.subclass_code,16);
+                		buf = (char*) kmalloc_p(len);
+                		int_to_str(buf,func.subclass_code,16);
+                		log_debugl(buf,len);
+                		kfree_p((void*) buf,len);
+		                log_debug(" 0x");
+				
+                		len = numlen(func.prog_if,16);
+ 		                buf = (char*) kmalloc_p(len);
+                  		int_to_str(buf,func.prog_if,16);
+		                log_debugl(buf,len);
+                		kfree_p((void*) buf,len);
+				
+		                log_debug("!\n");
+			}
+		}
 	}
 }
 
 void init_pci(){
-	pci_bus_t* bus = (pci_bus_t*) kmalloc_p(sizeof(pci_bus_t));
-	check_bus(0,bus);
+	pci = (pci_bus_t*) kmalloc_p(sizeof(pci_t));
+	//memset((uint8_t*)pci,0xFF,sizeof(pci_t));
+	check_bus(0);
+	print_pci_info();
 }
 
 uint16_t pci_config_read(uint8_t bus, uint8_t device, uint8_t function, uint8_t offset){

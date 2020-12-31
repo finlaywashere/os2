@@ -1,8 +1,8 @@
 #include <arch/x86_64/pit.h>
 
-uint64_t ticks = 0;
+volatile uint64_t ticks = 0;
 void init_pit(){
-	int divisor = 1193182 / 100; // Trigger every lil bit
+	int divisor = 1193182 / 10; // Trigger every lil bit
 
 	outb(0x43, 0x36);
 
@@ -18,9 +18,8 @@ void pit_count(){
 }
 void sleep(uint64_t ms){
 	uint64_t endCount = ticks+ms;
-	while(ticks < endCount){
+	while(1){
 		if(ticks >= endCount)
 			return;
 	}
-	return;
 }

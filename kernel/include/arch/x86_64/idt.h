@@ -31,7 +31,7 @@ struct registers{
 	uint64_t gs, fs, es, ss, ds;
 	uint64_t cr2;
 	uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
-	uint64_t rbp, rsp, rdi, rdx, rcx, rbx, rax;
+	uint64_t rbp, rsp, rsi, rdi, rdx, rcx, rbx, rax;
 	uint64_t interrupt, error;
 	uint64_t rip;
 	uint64_t cs;

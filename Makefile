@@ -2,7 +2,7 @@ NAME = OS2
 
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS = --no-reboot -no-shutdown -drive file=disk.iso,id=drive0,if=none -device ide-hd,drive=drive0
+QEMUFLAGS = --no-reboot -no-shutdown -drive file=disk.iso,id=drive0,if=ide
 
 build:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link

@@ -3,8 +3,11 @@ Offset (hex)	|	Size (bytes)	|	Meaning
 Parameter block (sector 3 (indexed at 0)):
 
 0x00			4			FS signature, always "FFS2"
-0x04			8			Number of sectors in FS
-0x0C			500			Reserved
+0x04			4			Filesystem flags, bits: 1 = root_fs, etc
+0x08			8			Number of sectors in FS
+0x10			8			Chain block start sector
+0x18			8			First data sector
+0x20			480			Reserved
 
 Chain block entries :
 

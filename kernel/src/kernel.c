@@ -8,6 +8,7 @@
 #include <arch/x86_64/gdt.h>
 #include <arch/x86_64/driver/disk/disk.h>
 #include <arch/x86_64/driver/timer/timer.h>
+#include <arch/x86_64/driver/disk/ide.h>
 
 void kernel_start(){
 	init_paging();
@@ -26,6 +27,10 @@ void kernel_start(){
 	log_debug("Initialized PCI!\n");
 	init_disks();
 	log_debug("Initialized disks!\n");
+	uint8_t* buffer = kmalloc_p(512); // IDE buffer
+	uint8_t code = ide_ata_read(2, 1, 0, buffer);
+	log_error("IDE error code: 0x");
+	log_error_num(code,16);
 	while(1){
 		// Infinite loop
 	}

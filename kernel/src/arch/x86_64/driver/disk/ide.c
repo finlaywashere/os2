@@ -131,3 +131,105 @@ uint8_t ide_poll(uint8_t channel, uint8_t error_check){
 	}
 	return 0;
 }
+uint8_t ide_ata_access(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t count, uint8_t* buffer){
+	uint8_t lba_mode;
+	uint8_t lba_io[6];
+	uint32_t channel = devices[drive].channel;
+	uint32_t secondary = devices[drive].drive;
+	uint32_t bus = channels[channel].io_base;
+	uint32_t words = 256; // 512 byte sectors
+	uint8_t head, error;
+	ide_write(channel,ATA_REG_CONTROL, 0x2);
+	if(lba >= 0x10000000){
+		lba_mode = 2;
+		lba_io[0] = (uint8_t) lba;
+		lba_io[1] = (uint8_t) (lba >> 8);
+		lba_io[2] = (uint8_t) (lba >> 16);
+		lba_io[3] = (uint8_t) (lba >> 24);
+		lba_io[4] = 0;
+		lba_io[5] = 0;
+		head = 0;
+	}else if(devices[drive].capabilities & 0x200) { // Else if the drive supports LBA
+		lba_mode = 1;
+		lba_io[0] = (uint8_t) lba;
+		lba_io[1] = (uint8_t) (lba >> 8);
+		lba_io[2] = (uint8_t) (lba >> 16);
+		lba_io[3] = 0;
+		lba_io[4] = 0;
+		lba_io[5] = 0;
+		head = (lba >> 24) & 0xF;
+	}else{
+		lba_mode = 0;
+		uint8_t sector = (lba % 63) + 1;
+		uint16_t cylinder = (lba + 1 - sector) / (16*63);
+		lba_io[0] = sector;
+		lba_io[1] = (uint8_t) cylinder;
+		lba_io[2] = (uint8_t) (cylinder >> 8);
+		lba_io[3] = 0;
+		lba_io[4] = 0;
+		lba_io[5] = 0;
+		head = (lba + 1 - sector) % (16 * 63) / 63;
+	}
+	ide_poll(channel,0); // Poll until not busy
+	if(lba_mode == 0) // CHS
+		ide_write(channel,ATA_REG_HDDEVSEL, 0xA0 | (secondary << 4) | head);
+	else // LBA
+		ide_write(channel,ATA_REG_HDDEVSEL, 0xE0 | (secondary << 4) | head);
+	
+	if(lba_mode == 2){ // LBA48
+		ide_write(channel, ATA_REG_SECCOUNT1, 0);
+		ide_write(channel, ATA_REG_LBA3, lba_io[3]);
+		ide_write(channel, ATA_REG_LBA4, lba_io[4]);
+		ide_write(channel, ATA_REG_LBA5, lba_io[5]);
+	}
+	ide_write(channel, ATA_REG_SECCOUNT0, count);
+	ide_write(channel, ATA_REG_LBA0, lba_io[0]);
+	ide_write(channel, ATA_REG_LBA1, lba_io[1]);
+	ide_write(channel, ATA_REG_LBA2, lba_io[2]);
+	
+	uint8_t cmd;
+	if((lba_mode == 0 || lba_mode == 1) && direction == 0) cmd = ATA_CMD_READ_PIO;
+	if(lba_mode == 2 && direction == 0) cmd = ATA_CMD_READ_PIO_EXT;
+	if((lba_mode == 0 || lba_mode == 1) && direction == 1) cmd = ATA_CMD_WRITE_PIO;
+	if(lba_mode == 2 && direction == 1) cmd = ATA_CMD_WRITE_PIO_EXT;
+	
+	ide_write(channel,ATA_REG_COMMAND,cmd);
+	
+	if(direction == 0){
+		uint16_t* new_buffer = (uint16_t*) buffer;
+		for(int i = 0; i < count; i++){
+			uint8_t error = ide_poll(channel,1); // Poll until not busy
+			if(error > 0)
+				return error;
+			for(int j = 0; j < words; j++){
+				uint16_t data = inw(bus);
+				new_buffer[i*words+j] = data;
+			}
+		}
+	}else{
+		uint16_t* new_buffer = (uint16_t*) buffer;
+                for(int i = 0; i < count; i++){
+                        ide_poll(channel,0); // Poll until not busy
+                        for(int j = 0; j < words; j++){
+                                outw(bus, new_buffer[i*words+j]);
+                        }
+                }
+		ide_write(channel,ATA_REG_COMMAND, (char[]) {ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);
+		ide_poll(channel,0);
+	}
+	return 0;
+}
+uint8_t ide_ata_read(uint8_t drive, uint8_t sectors, uint32_t lba, uint8_t* buffer){
+	if(drive > 3 || devices[drive].exists == 0) return 1;
+	if(devices[drive].type != IDE_ATA) return 2; // Only ATA devices are supported
+	if((lba + sectors) > devices[drive].size) return 3;
+	uint8_t error = ide_ata_access(0,drive,lba,sectors,buffer);
+	return error;
+}
+uint8_t ide_ata_write(uint8_t drive, uint8_t sectors, uint32_t lba, uint8_t* buffer){
+	if(drive > 3 || devices[drive].exists == 0) return 1;
+        if(devices[drive].type != IDE_ATA) return 2; // Only ATA devices are supported
+        if((lba + sectors) > devices[drive].size) return 3;
+	uint8_t error = ide_ata_access(1,drive,lba,sectors,buffer);
+        return error;
+}

@@ -4,8 +4,12 @@ idt_t* idt;
 
 idt_ptr_t idt_ptr;
 
+isr_t* interrupt_handlers;
+
 void init_idt(){
-	idt = kmalloc_p(sizeof(idt)*256);
+	idt = (idt_t*) kmalloc_p(sizeof(idt)*256);
+	interrupt_handlers = (isr_t*) kmalloc_p(sizeof(isr_t)*256);
+	memset((uint8_t*)interrupt_handlers,0,sizeof(isr_t)*256);
 	// Remap the PIC
 	outb(0x20,0x11);
 	outb(0xA0, 0x11);
@@ -67,6 +71,8 @@ void init_idt(){
 	set_idt_gate(45, (uint64_t) &irq13, 0x08, 0x8e);
 	set_idt_gate(46, (uint64_t) &irq14, 0x08, 0x8e);
 	set_idt_gate(47, (uint64_t) &irq15, 0x08, 0x8e);
+
+	set_idt_gate(80, (uint64_t) &irq80, 0x08, 0x8e);
 	
 	// The base is linear
 	idt_ptr.base = (uint64_t) idt;//get_physical_addr((uint64_t) idt);
@@ -90,13 +96,19 @@ void isr_handler(registers_t regs){
 	outb(0x20,0x20); // EOI
 	if(regs.interrupt < 32){
 		log_error("Received error 0x");
-		uint64_t len = numlen(regs.interrupt,16);
-		char* buf = (char*) kmalloc_p(len);
-		int_to_str(buf,regs.interrupt,16);
-		log_error(buf);
-		kfree_p((void*) buf,len);
-		log_error("!\n");
+		log_error_num(regs.interrupt, 16);
+		log_error("!\nPC: 0x");
+		log_error_num(regs.rip,16);
+		log_error("\nError code: 0x");
+		log_error_num(regs.error,16);
+		disable_interrupts();
+		panic("\n");
 	}
-	if(regs.interrupt == 32)
-		pit_count();
+	if(regs.interrupt >= 32 && interrupt_handlers[regs.interrupt] != 0){
+		isr_t handler = interrupt_handlers[regs.interrupt];
+		regs = handler(regs);
+	}
+}
+void isr_register_handler(uint8_t num, isr_t handler){
+	interrupt_handlers[num] = handler;
 }

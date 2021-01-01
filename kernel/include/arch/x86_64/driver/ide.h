@@ -4,7 +4,7 @@
 #include <arch/x86_64/driver/pci.h>
 #include <mem/vmm.h>
 #include <utils.h>
-#include <arch/x86_64/pit.h>
+#include <arch/x86_64/timer.h>
 #include <log.h>
 
 #define ATA_SR_BSY     0x80    // Busy

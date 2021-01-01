@@ -10,5 +10,4 @@ $(ARCHDIR)/isr_asm.o \
 $(ARCHDIR)/acpi.o \
 $(ARCHDIR)/gdt.o \
 $(ARCHDIR)/gdt_asm.o \
-$(ARCHDIR)/pit.o
-
+$(ARCHDIR)/timer.o

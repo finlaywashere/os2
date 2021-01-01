@@ -118,6 +118,8 @@ irq 13, 45
 irq 14, 46
 irq 15, 47
 
+irq 80, 80 ; Kernel syscall
+
 %macro ISR_NOERRORCODE 1
 global isr%1
 isr%1:

@@ -9,6 +9,7 @@
 
 void panic(char* message);
 void log_error(char* message);
+void log_error_num(uint64_t num, uint8_t base);
 void log_warn(char* message);
 void log_debug(char* message);
 void log_verb(char* message);

@@ -6,7 +6,6 @@
 #include <mem/vmm.h>
 #include <arch/x86_64/paging.h>
 #include <log.h>
-#include <arch/x86_64/pit.h>
 
 struct idt{
 	uint16_t offset_low;
@@ -40,6 +39,10 @@ struct registers{
 }__attribute__((packed));
 
 typedef struct registers registers_t;
+
+typedef registers_t (*isr_t)(registers_t);
+
+void isr_register_handler(uint8_t num, isr_t handler);
 
 // Convenient ways to enable/disable interrupts for important code
 extern void enable_interrupts();
@@ -96,6 +99,8 @@ extern void irq12();
 extern void irq13();
 extern void irq14();
 extern void irq15();
+
+extern void irq80();
 
 void init_idt();
 void set_idt_gate(int index, uint64_t addr, uint16_t selector, uint8_t type);

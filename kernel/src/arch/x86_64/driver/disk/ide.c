@@ -4,6 +4,35 @@ char* ide_buf;
 char irq_invoked = 0;
 char atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
+uint8_t ide_write_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
+	if(count <= 0xff){
+                ide_ata_write(disk->identifier, (uint8_t) count, lba, buffer);
+        }else{
+                while(count > 0){
+                        ide_ata_write(disk->identifier, (uint8_t) count, lba, buffer);
+
+                        lba += 0xff;
+                        count -= 0xff;
+                        buffer = (uint8_t*) (((uint64_t) buffer) + 0xff);
+                }
+        }
+	return 0;
+}
+uint8_t ide_read_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
+	if(count <= 0xff){
+		ide_ata_read(disk->identifier, (uint8_t) count, lba, buffer);
+	}else{
+		while(count > 0){
+			ide_ata_read(disk->identifier, (uint8_t) count, lba, buffer);
+			
+			lba += 0xff;
+			count -= 0xff;
+			buffer = (uint8_t*) (((uint64_t) buffer) + 0xff);
+		}
+	}
+	return 0;
+}
+
 void init_ide(){
 	pci_function_t* controller = get_function_by_class(1, 1, 0x80); // Look for PCI device with class code 1, and subclass 1
 	
@@ -62,9 +91,19 @@ void init_ide(){
 				devices[count].model[k+1] = ide_buf[ATA_IDENT_MODEL+k];
 			}
 			devices[count].model[40] = 0x0; // Null terminator
-			log_warn("Disk model: ");
-			log_warn(devices[count].model);
-			log_warn("\n");
+			disk_t disk;
+			disk.name[0] = 'i';
+			disk.name[1] = 'd';
+			disk.name[2] = 'e';
+			disk.name[3] = '0'+count;
+			for(int i = 4; i < 16; i++)
+				disk.name[i] = 0x0;
+			disk.flags = 1; // Disk exists
+			disk.type = 0;
+			disk.identifier = count;
+			disk.read_disk = &ide_read_disk;
+			disk.write_disk = &ide_write_disk;
+			register_disk(disk);
 		}
 	}
 }

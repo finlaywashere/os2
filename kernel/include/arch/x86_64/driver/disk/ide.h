@@ -7,7 +7,7 @@
 #include <mem/vmm.h>
 #include <utils.h>
 #include <arch/x86_64/driver/timer/timer.h>
-#include <log.h>
+#include <arch/x86_64/driver/disk/disk.h>
 
 #define ATA_SR_BSY     0x80    // Busy
 #define ATA_SR_DRDY    0x40    // Drive ready

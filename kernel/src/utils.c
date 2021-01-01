@@ -39,8 +39,8 @@ void int_to_str(char* buffer, uint64_t number, uint64_t base){
 	uint64_t len = numlen(number,base);
 	for(int i = len-1; i >= 0; i--){
 		buffer[i] = '0' + (number % base);
-		if(buffer[i-1] > '9')
-			buffer[i-1] += ('A'-'9');
+		if(buffer[i] > '9')
+			buffer[i] += ('A'-'9'-1);
 		number /= base;
 	}
 }

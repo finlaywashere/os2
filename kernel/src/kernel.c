@@ -28,9 +28,9 @@ void kernel_start(){
 	init_disks();
 	log_debug("Initialized disks!\n");
 	uint8_t* buffer = kmalloc_p(512); // IDE buffer
-	uint8_t code = ide_ata_read(2, 1, 0, buffer);
-	log_error("IDE error code: 0x");
-	log_error_num(code,16);
+	read_disk(0,0,1,buffer);
+	log_error("Byte at index 511: 0x");
+	log_error_num(buffer[511],16);
 	while(1){
 		// Infinite loop
 	}

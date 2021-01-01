@@ -1,4 +1,3 @@
-
 #include <arch/x86_64/tty.h>
 #include <mem/pmm.h>
 #include <arch/x86_64/paging.h>
@@ -7,8 +6,8 @@
 #include <arch/x86_64/idt.h>
 #include <arch/x86_64/driver/pci.h>
 #include <arch/x86_64/gdt.h>
-#include <arch/x86_64/driver/ide.h>
-#include <arch/x86_64/timer.h>
+#include <arch/x86_64/driver/disk/disk.h>
+#include <arch/x86_64/driver/timer/timer.h>
 
 void kernel_start(){
 	init_paging();
@@ -25,8 +24,8 @@ void kernel_start(){
 	log_debug("Initialized ACPI!\n");
 	init_pci();
 	log_debug("Initialized PCI!\n");
-	init_ide();
-	log_debug("Initialized IDE!\n");
+	init_disks();
+	log_debug("Initialized disks!\n");
 	while(1){
 		// Infinite loop
 	}

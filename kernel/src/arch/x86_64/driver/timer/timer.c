@@ -1,4 +1,4 @@
-#include <arch/x86_64/timer.h>
+#include <arch/x86_64/driver/timer/timer.h>
 
 void init_timers(){
 	init_pit();

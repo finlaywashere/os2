@@ -1,3 +1,5 @@
 DRIVER_OBJS = $(DRIVERDIR)/pci.o \
-$(DRIVERDIR)/ide.o \
+$(DRIVERDIR)/disk/disk.o \
+$(DRIVERDIR)/disk/ide.o \
+$(DRIVERDIR)/timer/timer.o \
 $(DRIVERDIR)/timer/pit.o

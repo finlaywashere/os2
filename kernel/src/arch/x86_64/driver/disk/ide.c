@@ -1,4 +1,4 @@
-#include <arch/x86_64/driver/ide.h>
+#include <arch/x86_64/driver/disk/ide.h>
 
 char* ide_buf;
 char irq_invoked = 0;

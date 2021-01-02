@@ -6,7 +6,7 @@ char atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 uint8_t ide_write_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
 	if(count <= 0xff){
-                ide_ata_write(disk->identifier, (uint8_t) count, lba, buffer);
+                return ide_ata_write(disk->identifier, (uint8_t) count, lba, buffer);
         }else{
                 while(count > 0){
                         ide_ata_write(disk->identifier, (uint8_t) count, lba, buffer);
@@ -20,7 +20,7 @@ uint8_t ide_write_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buff
 }
 uint8_t ide_read_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
 	if(count <= 0xff){
-		ide_ata_read(disk->identifier, (uint8_t) count, lba, buffer);
+		return ide_ata_read(disk->identifier, (uint8_t) count, lba, buffer);
 	}else{
 		while(count > 0){
 			ide_ata_read(disk->identifier, (uint8_t) count, lba, buffer);
@@ -155,8 +155,7 @@ void ide_read_buffer(uint8_t channel, uint8_t reg, uint32_t* buffer, uint32_t co
                 ide_write(channel,ATA_REG_CONTROL, channels[channel].no_interrupt);
 }
 uint8_t ide_poll(uint8_t channel, uint8_t error_check){
-	for(int i = 0; i < 4; i++)
-		ide_read(channel,ATA_REG_ALTSTATUS); // Reading altstatus wastes 100ns each
+	sleep(1);
 	while((ide_read(channel,ATA_REG_STATUS) & ATA_SR_BSY) == 1) ;
 	
 	if(error_check){

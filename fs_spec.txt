@@ -6,8 +6,9 @@ Parameter block (sector 3 (indexed at 0)):
 0x04			4			Filesystem flags, bits: 1 = root_fs, etc
 0x08			8			Number of sectors in FS
 0x10			8			Chain block start sector
-0x18			8			First data sector
-0x20			480			Reserved
+0x18			8			First data sector (root directory sector)
+0x20			416			Reserved
+0x1c0			64			Root directory
 
 Chain block entries :
 
@@ -16,3 +17,17 @@ Chain block entries :
 Chain block :
 
 32x chain block entries per chain block (each entry corresponds to a block on disk in the order given)
+
+File structure:
+
+0x00			20			Name (up to 32 characters long)
+0x14			2			Type (0 = directory, 1 = file, 2 = symlink)
+0x16			2			Access flags (Permissions)
+0x18			8			Inode
+0x20			8			Creation date (ms since epoch)
+0x28			8			Modification date (ms since epoch)
+0x30			8			Start (sector)
+0x38			8			Length (bytes)
+
+Directories
+

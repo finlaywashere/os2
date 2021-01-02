@@ -4,6 +4,13 @@ parameter_block_t* parameter_blocks;
 
 uint8_t root_disk;
 
+void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
+	
+}
+void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
+	
+}
+
 void init_ffs(){
 	root_disk = 0xff;
 	uint8_t disk_count = get_disk_count();
@@ -24,4 +31,16 @@ void init_ffs(){
 	}
 	if(root_disk == 0xff)
 		panic("Error: No root drive found!");
+	ffs_entry_t entry = parameter_blocks[root_disk].root_directory;
+	fs_node_t *root = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	memcpy((uint8_t*) &entry.name, (uint8_t*) root->name, 20);
+	root->flags = entry.permissions;
+	root->inode = entry.inode;
+	root->creation_time = entry.creation_date;
+	root->modification_time = entry.modification_date;
+	root->read_file = &ffs_read_file;
+	root->write_file = &ffs_write_file;
+	set_root_directory(root);
 }
+fs_node_t* ffs_get_file(char* name);
+

@@ -12,7 +12,7 @@
 
 void kernel_start(){
 	init_paging();
-	init_kmalloc(1024*100); // Assume 100MiB of memory
+	init_kmalloc();
 	init_ttys(1);
 	log_debug("Initialized core kernel!\n");
 	init_gdt();

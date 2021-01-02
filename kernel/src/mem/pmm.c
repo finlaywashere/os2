@@ -10,22 +10,41 @@ uint64_t safe_alloc_kib;
 uint8_t* kmalloc_bitmap;
 uint64_t bitmap_count;
 
-void init_kmalloc(uint64_t memory_size){
+void init_kmalloc(){
+	uint32_t mem_map_length = *(uint32_t*) 0xffffff8000006000;
+	uint64_t mem_map_addr = 0xffffff8000006020;
+	mem_map_entry_t* mem_map = (mem_map_entry_t*) mem_map_addr;
+	
+	uint64_t mem_size = 0;
+	
+	for(int i = 0; i < mem_map_length; i++){
+		mem_map_entry_t entry = mem_map[i];
+		if(entry.base+entry.length > mem_size)
+			mem_size = entry.base+entry.length;
+	}
+	
+	
 	kernel_phys_end = ((uint64_t) &_kernel_end) - KERNEL_VIRT_ADDR;
 	safe_alloc_start = kernel_phys_end + 0x800000; // Add 8MiB buffer after kernel for stacks/general safety
-	bitmap_count = memory_size/8;
+	bitmap_count = mem_size/8192;
 	kmalloc_bitmap = (uint8_t*)(safe_alloc_start+0xffffff8000000000);
+	memset(kmalloc_bitmap,0,bitmap_count);
 	safe_alloc_start += 2 * bitmap_count; // Add bitmap to the end of that safe allocation start, and double its size for extra safety
 	safe_alloc_kib = safe_alloc_start/1024+1; // Convert bytes to KiB and add 1 because I don't want to check for remainders
-	for(uint64_t i = 0; i < bitmap_count; i++){
-		uint8_t entry = 0;
-		for(uint64_t j = 0; j < 8; j++){
-			uint8_t value = 1;
-			if(i*8+j <= safe_alloc_kib)
-				value = 0;
-			entry |= value << j;
+	for(int i = 0; i < mem_map_length; i++){
+		mem_map_entry_t entry = mem_map[i];
+		if(entry.type != MEM_USABLE)
+			continue;
+		for(uint64_t addr = entry.base/8192+1; addr < (entry.base+entry.length)/8192-1; addr++){
+			uint8_t bitmap_entry = 0;
+			for(uint64_t j = 0; j < 8; j++){
+				uint8_t value = 0;
+        	                if(addr*8+j > safe_alloc_kib)
+                	                value = 1;
+	                	bitmap_entry |= value << j;
+			}
+			kmalloc_bitmap[addr] = bitmap_entry;
 		}
-		kmalloc_bitmap[i] = entry;
 	}
 }
 

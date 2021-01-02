@@ -11,12 +11,21 @@ _start:
 	push 0
 	push 0
 	
-	mov di, 0x6000 ; Memory map location
+	mov di, 0x6020 ; Memory map location
 	mov ebx, 0 ; Clear ebx
 	mov edx, 0x534D4150 ; Magic number
+.memmap:
 	mov eax, 0xE820
-	mov ecx, 24
-	int 0x15 ; Call BIOS for memory map
+        mov ecx, 24
+        int 0x15 ; Call BIOS for memory map
+	add di, 24
+	mov eax, [0x6000]
+	inc eax
+	mov [0x6000], eax
+	cmp ebx, 0
+	jne .memmap
+	
+	; End of memory map code
 	
 	; Setup page tables now to save trouble later
 	mov edx, 0x8000
@@ -156,6 +165,6 @@ disk_packet:
 	dd 1 ; Lower 32 bits of starting LBA
 	dd 0 ; Upper 32 bits of starting LBA
 boot_header:
-	resb 142
+	resb 110
 	db 0x55
 	db 0xAA

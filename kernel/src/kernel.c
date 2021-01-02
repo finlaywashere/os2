@@ -31,7 +31,7 @@ void kernel_start(){
 	init_filesystems();
 	log_debug("Initialized filesystems!\n");
 	fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
-	ffs_read_dir(get_file("/root/"), buffer);
+	get_file("/TESTFILE",buffer);
 	log_warn(buffer->name);
 	while(1){
 		// Infinite loop

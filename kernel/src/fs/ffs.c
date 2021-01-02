@@ -4,6 +4,12 @@ ffs_t* ffs;
 
 uint8_t root_disk;
 
+uint64_t ffs_dir_entries(fs_node_t* file){
+	if(file->type != 0)
+		return 0;
+	return file->length/sizeof(ffs_entry_t);
+}
+
 void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	uint64_t first_sector = file->inode & 0x00FFFFFFFFFFFFFF;
 	uint64_t offset_sector_index = offset/512;
@@ -37,6 +43,9 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 		buffer[i].length = entries[i].length;
 		buffer[i].read_file = &ffs_read_file;
 		buffer[i].write_file = &ffs_write_file;
+		buffer[i].read_dir = &ffs_read_dir;
+        	buffer[i].dir_entries = &ffs_dir_entries;
+	        buffer[i].write_dir = &ffs_write_dir;
 	}
 	kfree_p(entries,sizeof(ffs_entry_t)*entry_count);
 }
@@ -44,6 +53,10 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	
 }
+void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t length, fs_node_t* buffer){
+	
+}
+
 
 void init_ffs(){
 	root_disk = 0xff;
@@ -78,6 +91,9 @@ void init_ffs(){
 	root->modification_time = entry.modification_date;
 	root->read_file = &ffs_read_file;
 	root->write_file = &ffs_write_file;
+	root->read_dir = &ffs_read_dir;
+	root->dir_entries = &ffs_dir_entries;
+	root->write_dir = &ffs_write_dir;
 	root->length = entry.length;
 	set_root_directory(root);
 }

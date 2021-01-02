@@ -11,6 +11,7 @@ struct fs_node{
         uint64_t inode; // File unique identifier
         uint64_t creation_time; // Ms since epoch
 	uint64_t modification_time; // Ms since epoch
+	uint64_t length; // In bytes
 	uint8_t (*read_file) (struct fs_node *file, uint64_t offset, uint64_t count, uint8_t* buffer);
         uint8_t (*write_file) (struct fs_node *file, uint64_t offset, uint64_t count, uint8_t* buffer);
 };

@@ -35,4 +35,19 @@ struct parameter_block{
 }__attribute__((packed));
 typedef struct parameter_block parameter_block_t;
 
+struct chain_block{
+	uint64_t next_sector[32];
+}__attribute__((packed));
+typedef struct chain_block chain_block_t;
+
+struct ffs{
+	parameter_block_t parameters;
+	chain_block_t* chain_blocks;
+};
+typedef struct ffs ffs_t;
+
 void init_ffs();
+void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer);
+void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer);
+void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer);
+

@@ -2,8 +2,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <fs/ffs.h>
-
 struct fs_node{
         uint16_t flags; // File flags
         char name[20];
@@ -16,6 +14,8 @@ struct fs_node{
         uint8_t (*write_file) (struct fs_node *file, uint64_t offset, uint64_t count, uint8_t* buffer);
 };
 typedef struct fs_node fs_node_t;
+
+#include <fs/ffs.h>
 
 void init_filesystems();
 fs_node_t* get_file(char* name);

@@ -73,11 +73,12 @@ void init_ffs(){
 	fs_node_t *root = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
 	memcpy((uint8_t*) &entry.name, (uint8_t*) root->name, 20);
 	root->flags = entry.permissions;
-	root->inode = entry.inode;
+	root->inode = ((uint64_t)entry.start_sector) | ((uint64_t)root_disk << 56);
 	root->creation_time = entry.creation_date;
 	root->modification_time = entry.modification_date;
 	root->read_file = &ffs_read_file;
 	root->write_file = &ffs_write_file;
+	root->length = entry.length;
 	set_root_directory(root);
 }
 fs_node_t* ffs_get_file(char* name);

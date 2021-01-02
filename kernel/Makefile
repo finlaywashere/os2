@@ -16,7 +16,9 @@ src/kernel.o \
 src/mem/pmm.o \
 src/mem/vmm.o \
 src/utils.o \
-src/log.o
+src/log.o \
+src/fs/fs.o \
+src/fs/ffs.o
 
 LINK_LIST=\
 $(LDFLAGS) \

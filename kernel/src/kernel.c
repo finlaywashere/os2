@@ -9,6 +9,7 @@
 #include <arch/x86_64/driver/disk/disk.h>
 #include <arch/x86_64/driver/timer/timer.h>
 #include <arch/x86_64/driver/disk/ide.h>
+#include <fs/fs.h>
 
 void kernel_start(){
 	init_paging();
@@ -27,10 +28,8 @@ void kernel_start(){
 	log_debug("Initialized PCI!\n");
 	init_disks();
 	log_debug("Initialized disks!\n");
-	uint8_t* buffer = kmalloc_p(512); // IDE buffer
-	read_disk(0,0,1,buffer);
-	log_error("Byte at index 511: 0x");
-	log_error_num(buffer[511],16);
+	init_filesystems();
+	log_debug("Initialized filesystems!\n");
 	while(1){
 		// Infinite loop
 	}

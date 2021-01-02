@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include <fs/ffs.h>
+
 struct fs_node{
         uint16_t flags; // File flags
         char name[16];

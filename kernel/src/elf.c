@@ -7,7 +7,7 @@ uint64_t load_elf(char* name, page_table_t* dst){
 	file->read_file(file,0,file->length,buffer); // Read whole file to memory
 	
 	elf_header_t* header = (elf_header_t*) buffer;
-	uint64_t header_addr = header->header_table_position;
+	uint64_t header_addr = header->header_table_position + (uint64_t)buffer;
 	
 	page_table_t* curr_table = get_curr_page_directory();
         memcpy((uint8_t*) curr_table, (uint8_t*) dst, sizeof(page_table_t));

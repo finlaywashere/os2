@@ -37,7 +37,7 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 		buffer[i].flags = entries[i].permissions;
 		memcpy(entries[i].name,buffer[i].name,20); // Copy name
 		buffer[i].type = entries[i].type;
-		buffer[i].inode = (entries[i].inode & 0x00FFFFFFFFFFFFFF) | (((uint8_t) dir->inode) << 56); // First 8 bits of inode is the fs identifier (unique to this instance of the kernel)
+		buffer[i].inode = (((uint64_t) (dir->inode>>56)) << 56) | entries[i].start_sector; // First 8 bits of inode is the fs identifier (unique to this instance of the kernel)
 		buffer[i].creation_time = entries[i].creation_date;
 		buffer[i].modification_time = entries[i].modification_date;
 		buffer[i].length = entries[i].length;

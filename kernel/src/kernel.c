@@ -10,6 +10,7 @@
 #include <arch/x86_64/driver/timer/timer.h>
 #include <arch/x86_64/driver/disk/ide.h>
 #include <fs/fs.h>
+#include <elf.h>
 
 void kernel_start(){
 	init_paging();
@@ -30,9 +31,9 @@ void kernel_start(){
 	log_debug("Initialized disks!\n");
 	init_filesystems();
 	log_debug("Initialized filesystems!\n");
-	fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
-	get_file("/TESTFILE",buffer);
-	log_warn(buffer->name);
+	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
+	uint64_t entry_point = load_elf("/TESTFILE", dst);
+	log_error_num(entry_point,16);
 	while(1){
 		// Infinite loop
 	}

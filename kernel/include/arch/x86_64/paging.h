@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <mem/vmm.h>
 
 struct page_table{
 	uint64_t entries[512];

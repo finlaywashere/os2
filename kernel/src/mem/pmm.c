@@ -48,12 +48,15 @@ void init_kmalloc(){
 	}
 }
 
-void* kmalloc(uint64_t size){
+void* kmalloc(uint64_t size, uint64_t alignment){
 	// This is a very dumb way to do it, once 1 part of a 8KiB page represented by one of these bytes is set then the whole page is effectively allocated
 	// I'm going to leave making this better as a future todo
 	// TODO: Improve this
 	size = size/1024 + ((size % 1024) > 0 ? 1 : 0); // 1KiB pages
 	for(uint64_t i = safe_alloc_kib/8; i < bitmap_count; i++){ // Start looking after the safe allocation point to save cpu cycles
+		if((i*1024*8) % alignment > 0){
+			continue;
+		}
 		uint8_t found = 1;
 		uint64_t j;
 		for(j = 0; j < size; j++){

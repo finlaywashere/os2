@@ -20,6 +20,6 @@ typedef struct mem_map_entry mem_map_entry_t;
 
 void init_kmalloc();
 
-void* kmalloc(uint64_t size);
+void* kmalloc(uint64_t size,uint64_t alignment);
 void kfree(void* base, uint64_t size);
 

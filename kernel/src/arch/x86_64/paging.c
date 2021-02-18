@@ -66,14 +66,25 @@ void map_pages(uint64_t phys, uint64_t virtual, uint8_t flags, uint64_t size){
 		virtual += 0x200000;
 	}
 }
+uint64_t alloc_table(){
+	return (uint64_t) kmalloc_p(4096);
+}
 void map_page(uint64_t phys, uint64_t virtual, uint8_t flags){
 	flags |= 0b10000000;
 	int p4_index = (virtual >> 39) & 0x1FF; // Get index in P4 table
         uint64_t p4_entry = page_directory->entries[p4_index];
-        page_table_t* p3_table = (page_table_t*)(p4_entry & 0xFFFFFFFFFFFFF000);
+        page_table_t* p3_table = (page_table_t*)((p4_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000);
+	if(p3_table == 0xffffff8000000000){
+		p3_table = (page_table_t*) alloc_table();
+		page_directory->entries[p4_index] = (((uint64_t)p3_table)-0xffffff8000000000) | 0x3;
+	}
         int p3_index = (virtual >> 30) & 0x1FF; // Get index in P3 table
         uint64_t p3_entry = p3_table->entries[p3_index];
-	page_table_t* p2_table = (page_table_t*) (p3_entry & 0xFFFFFFFFFFFFF000); // Get P2 table in memory
+	page_table_t* p2_table = (page_table_t*) ((p3_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000); // Get P2 table in memory
+	if(p2_table == 0xffffff8000000000){
+                p2_table = (page_table_t*) alloc_table();
+                p3_table->entries[p3_index] = (((uint64_t)p2_table)-0xffffff8000000000) | 0x3;
+        }
         int p2_index = (virtual >> 21) & 0x1FF; // Get index in P2 table
 	
 	uint64_t entry = (phys & 0xFFFFFFFFFFFFF000) | flags;

@@ -34,6 +34,8 @@ void kernel_start(){
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	uint64_t entry_point = load_elf("/test.elf", dst);
 	log_error_num(entry_point,16);
+	set_page_directory(dst);
+	asm volatile("jmp 0x1000");
 	while(1){
 		// Infinite loop
 	}

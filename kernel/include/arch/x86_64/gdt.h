@@ -45,3 +45,4 @@ extern void load_gdt();
 
 void init_gdt();
 void set_gdt_entry(int index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags);
+void tss_set_rsp(uint64_t rsp);

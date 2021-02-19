@@ -11,6 +11,7 @@
 #include <arch/x86_64/driver/disk/ide.h>
 #include <fs/fs.h>
 #include <elf.h>
+#include <process.h>
 
 void kernel_start(){
 	init_paging();
@@ -31,11 +32,13 @@ void kernel_start(){
 	log_debug("Initialized disks!\n");
 	init_filesystems();
 	log_debug("Initialized filesystems!\n");
+	init_processes();
+	log_debug("Initialized processes!\n");
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	uint64_t entry_point = load_elf("/test.elf", dst);
-	log_error_num(entry_point,16);
-	set_page_directory(dst);
-	asm volatile("jmp 0x1000");
+	uint64_t pid = create_process(dst, entry_point);
+	log_verb("PID: ");
+	log_error_num(pid,10);
 	while(1){
 		// Infinite loop
 	}

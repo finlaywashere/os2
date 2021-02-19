@@ -106,7 +106,7 @@ void isr_handler(registers_t regs){
 	}
 	if(regs.interrupt >= 32 && interrupt_handlers[regs.interrupt] != 0){
 		isr_t handler = interrupt_handlers[regs.interrupt];
-		regs = handler(regs);
+		handler(&regs);
 	}
 }
 void isr_register_handler(uint8_t num, isr_t handler){

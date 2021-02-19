@@ -30,17 +30,17 @@ struct registers{
 	uint64_t gs, fs, es, ss, ds;
 	uint64_t cr2;
 	uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
-	uint64_t rbp, rsp, rsi, rdi, rdx, rcx, rbx, rax;
+	uint64_t rbp, rsi, rdi, rdx, rcx, rbx, rax;
 	uint64_t interrupt, error;
 	uint64_t rip;
 	uint64_t cs;
-	uint64_t eflags, userrsp;
+	uint64_t rflags, userrsp;
 	uint64_t userss;
 }__attribute__((packed));
 
 typedef struct registers registers_t;
 
-typedef registers_t (*isr_t)(registers_t);
+typedef void (*isr_t)(registers_t*);
 
 void isr_register_handler(uint8_t num, isr_t handler);
 

@@ -21,7 +21,6 @@ disable_interrupts:
 	push rdx
 	push rdi
 	push rsi
-	push rsp
 	push rbp
 	push r8
 	push r9
@@ -66,7 +65,6 @@ disable_interrupts:
 	pop r9
 	pop r8
 	pop rbp
-	pop rsp
 	pop rsi
 	pop rdi
 	pop rdx

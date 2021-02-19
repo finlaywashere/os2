@@ -15,9 +15,9 @@ void init_pit(){
 	
 	isr_register_handler(0x20, &pit_count);
 }
-registers_t pit_count(registers_t regs){
+void pit_count(registers_t* regs){
 	ticks++;
-	return regs;
+	schedule(regs);
 }
 uint64_t pit_get_ticks(){
 	return ticks;

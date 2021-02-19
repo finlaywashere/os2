@@ -5,6 +5,10 @@ tss_t* tss;
 
 gdt_ptr_t gdt_ptr;
 
+void tss_set_rsp(uint64_t rsp){
+	tss->rsp0 = rsp;
+}
+
 void init_gdt(){
 	gdt = (gdt_entry_t*) kmalloc_p(sizeof(gdt_entry_t)*7);
 	tss = (tss_t*) kmalloc_p(sizeof(tss_t));

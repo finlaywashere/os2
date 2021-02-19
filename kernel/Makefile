@@ -19,7 +19,8 @@ src/utils.o \
 src/log.o \
 src/fs/fs.o \
 src/fs/ffs.o \
-src/elf.o
+src/elf.o \
+src/process.o
 
 LINK_LIST=\
 $(LDFLAGS) \

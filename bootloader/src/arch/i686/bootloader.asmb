@@ -46,13 +46,38 @@ _start:
 	inc ecx
 	cmp ecx, 512
 	jne .loop
-	
+	mov ebx, 0
+	mov ecx, [0x7DC6] ; Start of partition
+	dec ecx
+	mov edx, [0x7DCA] ; Length of partition
+	inc edx
+.load:
+	push ebx
+	push ecx
+	push edx
 	; Load kernel from disk now so we can use the BIOS
+	mov eax, 0
 	mov ah, 0x42 ; LBA Read command
 	mov dl, 0x80 ; Use default drive
 	mov si, disk_packet ; Set packet location
 	int 0x13 ; Call BIOS
-		
+	
+	pop edx
+	pop ecx
+	pop ebx
+	
+	inc ebx
+	inc ecx
+	
+	mov eax, 1
+	mov [disk_packet+2], eax
+	mov eax, [disk_packet+4]
+	add eax, 512
+	mov [disk_packet+4], eax
+	mov [disk_packet+8], ecx
+	cmp ebx, edx
+	jne .load
+	
 	cli ; Disable interrupts
 	; Quickly set A20
 	in al, 0x92
@@ -159,12 +184,8 @@ align 32 ; Packet must be on 4 byte boundary
 disk_packet:
 	db 16 ; Size of packet
 	db 0 ; Zero
-	dw 127 ; Number of sectors, some BIOS's might restrict to being 127
+	dw 32 ; Number of sectors, some BIOS's might restrict to being 127
 	dw 0x9000 ; Buffer offset
 	dw 0 ; Buffer segment
 	dd 1 ; Lower 32 bits of starting LBA
 	dd 0 ; Upper 32 bits of starting LBA
-boot_header:
-	resb 110
-	db 0x55
-	db 0xAA

@@ -57,6 +57,9 @@ bootloader: $(OBJS)
 	$(AS) $(ABINFLAGS) $^ -o $@
 .asm.o:
 	$(AS) $(AFLAGS) $^ -o $@
+iso:
+	cp src/arch/i686/bootloader.o bin/stage1.o
+	cp src/arch/x86_64/stage2.o bin/stage2.o
 link:
 	$(CC) -o $(BUILDDIR)/bootloader.elf $(CFLAGS) $(LINK_LIST)
 	objcopy -O binary -j .text -j .rodata $(BUILDDIR)/bootloader.elf $(BUILDDIR)/bootloader.bin
@@ -69,13 +72,3 @@ setup:
 	@mkdir -p $(STAGE1ARCHDIR)
 	@mkdir -p $(STAGE2ARCHDIR)
 	@mkdir -p $(INCLUDEDIR)
-iso:
-	rm -f $(ISO)
-	cp src/arch/i686/bootloader.o $(ISO)
-	dd if=src/arch/x86_64/stage2.o of=$(ISO) bs=512 seek=1 count=4
-qemu:
-	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -monitor stdio
-debug:
-	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -d int
-gdb:
-	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -d int -s -S

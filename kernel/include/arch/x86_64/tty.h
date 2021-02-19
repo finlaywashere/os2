@@ -34,7 +34,8 @@ typedef struct tty tty_t;
 void init_ttys(int count);
 void init_tty(int number);
 
-void tty_putchar(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character);
+void tty_putchar_raw(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character);
+void tty_putchar(uint64_t tty, char character);
 void set_tty(uint64_t tty);
 void tty_copy(uint64_t src_tty, uint64_t dst_tty);
 void tty_putchars(uint64_t tty, char* characters, uint64_t count);

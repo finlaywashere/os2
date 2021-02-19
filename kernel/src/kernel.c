@@ -12,6 +12,7 @@
 #include <fs/fs.h>
 #include <elf.h>
 #include <process.h>
+#include <syscall.h>
 
 void kernel_start(){
 	init_paging();
@@ -32,6 +33,8 @@ void kernel_start(){
 	log_debug("Initialized disks!\n");
 	init_filesystems();
 	log_debug("Initialized filesystems!\n");
+	init_syscalls();
+	log_debug("Initialized syscalls!\n");
 	init_processes();
 	log_debug("Initialized processes!\n");
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));

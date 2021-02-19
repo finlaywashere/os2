@@ -1,5 +1,9 @@
 #!/bin/bash
 
-dd if=/dev/zero of=ffs.iso bs=1024 count=32
+rm -f ffs.iso test.o test.l.o
 
-# This script is kinda terrible atm because it doesn't auto generate the important filesystem structures but shhhh
+nasm -felf64 test.asm -o test.o 
+x86_64-elf-ld -T test_linker.ld test.o -o test.l.o
+
+../FFS2/ffs2_utils.o mkfs ffs.iso 64
+../FFS2/ffs2_utils.o copyfile ffs.iso test.l.o test.elf

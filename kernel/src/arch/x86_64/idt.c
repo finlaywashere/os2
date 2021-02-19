@@ -72,7 +72,7 @@ void init_idt(){
 	set_idt_gate(46, (uint64_t) &irq14, 0x08, 0x8e);
 	set_idt_gate(47, (uint64_t) &irq15, 0x08, 0x8e);
 
-	set_idt_gate(80, (uint64_t) &irq80, 0x08, 0x8e);
+	set_idt_gate(80, (uint64_t) &irq80, 0x08, 0xee); // Syscall interrupt, can be triggered from ring 3
 	
 	// The base is linear
 	idt_ptr.base = (uint64_t) idt;//get_physical_addr((uint64_t) idt);

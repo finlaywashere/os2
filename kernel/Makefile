@@ -20,7 +20,8 @@ src/log.o \
 src/fs/fs.o \
 src/fs/ffs.o \
 src/elf.o \
-src/process.o
+src/process.o \
+src/syscall.o
 
 LINK_LIST=\
 $(LDFLAGS) \

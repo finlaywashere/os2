@@ -29,27 +29,30 @@ void init_tty(int number){
 void set_tty(uint64_t tty){
 	active_tty = tty;
 }
-void tty_putchar(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character){
+void tty_putchar_raw(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character){
 	int index = row * VGA_WIDTH + col;
 	ttys[tty].buffer[index] = ((uint16_t)character) | (colour << 8);
+}
+void tty_putchar(uint64_t tty, char character){
+	if(character == '\n'){
+		ttys[tty].col = 0;
+		ttys[tty].row++;
+		return;
+	}
+	uint16_t row = ttys[tty].row;
+	uint16_t col = ttys[tty].col;
+	uint8_t colour = ttys[tty].colour;
+	tty_putchar_raw(tty,row,col,colour,character);
+	ttys[tty].col++;
+	if(ttys[tty].col >= VGA_WIDTH){
+		ttys[tty].col = 0;
+		ttys[tty].row++;
+	}
 }
 void tty_putchars(uint64_t tty, char* characters, uint64_t count){
 	for(uint64_t i = 0; i < count; i++){
 		char c = characters[i];
-		if(c == '\n'){
-			ttys[tty].col = 0;
-			ttys[tty].row++;
-			continue;
-		}
-		uint16_t row = ttys[tty].row;
-		uint16_t col = ttys[tty].col;
-		uint8_t colour = ttys[tty].colour;
-		tty_putchar(tty,row,col,colour,c);
-		ttys[tty].col++;
-		if(ttys[tty].col >= VGA_WIDTH){
-			ttys[tty].col = 0;
-			ttys[tty].row++;
-		}
+		tty_putchar(tty,c);
 	}
 }
 void tty_writestring(uint64_t tty, char* str){

@@ -2,7 +2,7 @@ bits 64
 
 global _start
 _start:
-	mov rax, 'A'
-	mov rbx, 0xffffff80000b8000
-	mov [rbx], rax
+	mov rax, 1
+	mov rbx, 'A'
+	int 80
 	jmp $

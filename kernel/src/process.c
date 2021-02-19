@@ -18,34 +18,34 @@ void schedule(registers_t* regs){
 	}
 	tss_set_rsp(processes[curr_process].shadow_stack);
 	memcpy(&processes[curr_process].regs,regs,sizeof(registers_t));
+	set_page_directory(processes[curr_process].page_table);
 }
 uint64_t create_process(page_table_t* loaded_data, uint64_t entry){
 	asm volatile("cli");
 	uint64_t slot = 0;
-	for(uint64_t i = 0; i < MAX_PROCESS_COUNT; i++){
+	for(uint64_t i = 1; i < MAX_PROCESS_COUNT; i++){
 		if(processes[i].status == PROCESS_DEAD){
-			slot = i+1;
+			slot = i;
 			break;
 		}
 	}
 	if(slot == 0)
 		return -1;
-	slot--;
 	processes[slot].page_table = loaded_data;
 	processes[slot].regs.rip = entry;
 	processes[slot].regs.cs = 0x1b;
 	processes[slot].shadow_stack = (uint64_t) kmalloc_p(STACK_SIZE);
 	processes[slot].regs.ds = 0x23;
-	processes[slot].regs.ss = 0x23;
+	processes[slot].regs.userss = 0x23;
 	processes[slot].regs.rflags = 0b1000000010;
 	processes[slot].status = PROCESS_READY;
 	
 	curr_max_process++;
 		
 	asm volatile("sti");
-	return slot+1;
+	return slot;
 }
 void kill_process(uint64_t code){
-	processes[code-1].status = PROCESS_DEAD;
+	processes[code].status = PROCESS_DEAD;
 }
 

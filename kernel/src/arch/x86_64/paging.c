@@ -76,14 +76,14 @@ void map_page(uint64_t phys, uint64_t virtual, uint8_t flags){
         page_table_t* p3_table = (page_table_t*)((p4_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000);
 	if(p3_table == 0xffffff8000000000){
 		p3_table = (page_table_t*) alloc_table();
-		page_directory->entries[p4_index] = (((uint64_t)p3_table)-0xffffff8000000000) | 0x3;
+		page_directory->entries[p4_index] = (((uint64_t)p3_table)-0xffffff8000000000) | 0x7; // Present, RW, User
 	}
         int p3_index = (virtual >> 30) & 0x1FF; // Get index in P3 table
         uint64_t p3_entry = p3_table->entries[p3_index];
 	page_table_t* p2_table = (page_table_t*) ((p3_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000); // Get P2 table in memory
 	if(p2_table == 0xffffff8000000000){
                 p2_table = (page_table_t*) alloc_table();
-                p3_table->entries[p3_index] = (((uint64_t)p2_table)-0xffffff8000000000) | 0x3;
+                p3_table->entries[p3_index] = (((uint64_t)p2_table)-0xffffff8000000000) | 0x7; // Present, RW, User
         }
         int p2_index = (virtual >> 21) & 0x1FF; // Get index in P2 table
 	

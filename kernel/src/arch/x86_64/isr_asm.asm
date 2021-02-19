@@ -34,8 +34,6 @@ disable_interrupts:
 	push rax
 	mov rax, ds
 	push rax
-	mov rax, ss
-	push rax
 	mov rax, es
 	push rax
 	mov rax, fs
@@ -51,8 +49,6 @@ disable_interrupts:
 	mov fs, ax
 	pop rax
 	mov es, ax
-	pop rax
-	mov ss, ax
 	pop rax
 	mov ds, ax
 	pop rax

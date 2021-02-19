@@ -27,7 +27,7 @@ struct idt_ptr{
 typedef struct idt_ptr idt_ptr_t;
 
 struct registers{
-	uint64_t gs, fs, es, ss, ds;
+	uint64_t gs, fs, es, ds;
 	uint64_t cr2;
 	uint64_t r15, r14, r13, r12, r11, r10, r9, r8;
 	uint64_t rbp, rsi, rdi, rdx, rcx, rbx, rax;

@@ -17,4 +17,5 @@ void map_page(uint64_t phys, uint64_t virtual, uint8_t flags);
 void map_pages(uint64_t phys, uint64_t virtual, uint8_t flags, uint64_t size);
 void set_page_directory(page_table_t* pd);
 page_table_t* get_curr_page_directory();
+page_table_t* hard_copy(page_table_t* table);
 

@@ -1,7 +1,7 @@
 #include <mem/vmm.h>
 
 void* kmalloc_p(uint64_t size){
-	void* pointer = kmalloc(size,1);
+	void* pointer = kmalloc(size,0x200000);
 	uint64_t pointer_int = (uint64_t) pointer;
 	pointer_int += 0xffffff8000000000;
 	return (void*)pointer_int;

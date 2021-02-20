@@ -69,6 +69,39 @@ void map_pages(uint64_t phys, uint64_t virtual, uint8_t flags, uint64_t size){
 uint64_t alloc_table(){
 	return (uint64_t) kmalloc_p(4096);
 }
+page_table_t* hard_copy(page_table_t* table){
+	page_table_t* dst = (page_table_t*) alloc_table();
+	for(int i1 = 0; i1 < 512; i1++){
+		if(i1 > 128){
+			dst->entries[i1] = table->entries[i1];
+			continue;
+		}
+		uint64_t p4_entry = table->entries[i1];
+		if(p4_entry == 0)
+			continue;
+		page_table_t* p3_table = (page_table_t*) ((p4_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000); // Get P3 table in memory
+		page_table_t* new_p3_table = (page_table_t*) alloc_table();
+		dst->entries[i1] = (((uint64_t) new_p3_table) - 0xffffff8000000000) | (p4_entry & 0xFFF); // Copy flags but change address
+		for(int i2 = 0; i2 < 512; i2++){
+			uint64_t p3_entry = p3_table->entries[i2];
+			if(p3_entry == 0)
+				continue;
+			page_table_t* p2_table = (page_table_t*) ((p3_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000); // Get P2 table in memory
+			page_table_t* new_p2_table = (page_table_t*) alloc_table();
+			new_p3_table->entries[i2] = (((uint64_t) new_p2_table) - 0xffffff8000000000) | (p3_entry & 0xFFF); // Copy flags but change address
+			for(int i3 = 0; i3 < 512; i3++){
+				uint64_t p2_entry = p2_table->entries[i3];
+				if(p2_entry == 0)
+					continue;
+				uint8_t* old_entry = ((p2_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000);
+				uint8_t* new_entry = (uint8_t*) kmalloc_p(0x200000); // Allocate a page of memory
+				memcpy(old_entry,new_entry,0x200000);
+				new_p2_table->entries[i3] = (((uint64_t) new_entry) - 0xffffff8000000000) | (p2_entry & 0xFFF); // Copy flags but change address
+			}
+		}
+	}
+	return dst;
+}
 void map_page(uint64_t phys, uint64_t virtual, uint8_t flags){
 	flags |= 0b10000000;
 	int p4_index = (virtual >> 39) & 0x1FF; // Get index in P4 table

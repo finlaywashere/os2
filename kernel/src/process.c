@@ -121,6 +121,8 @@ uint64_t fork_process(uint64_t parent, registers_t* regs){
 	memcpy(&processes[parent],&processes[child],sizeof(process_t));
 	processes[child].regs.rax = child;
 	configure_descriptors(child,parent);
+	page_table_t* new_page_table = hard_copy(processes[parent].page_table);
+	processes[child].page_table = new_page_table;
 	processes[child].shadow_stack = (uint64_t) kmalloc_p(STACK_SIZE);
 	processes[child].parent = parent;
 	processes[child].status = PROCESS_READY;

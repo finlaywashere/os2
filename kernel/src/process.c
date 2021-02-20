@@ -120,7 +120,10 @@ uint64_t fork_process(uint64_t parent, registers_t* regs){
 	processes[parent].regs.rax = child;
 	regs->rax = child;
 	processes[child].regs.rax = 0;
-	configure_descriptors(child,parent);
+	for(uint64_t i = 0; i < processes[child].count; i++){
+		if(processes[child].descriptors[i].buffer != 0)
+			processes[child].descriptors[i].buffer = (uint8_t*) kmalloc_p(BUFFER_SIZE);
+	}
 	page_table_t* new_page_table = hard_copy(processes[parent].page_table);
 	processes[child].page_table = new_page_table;
 	processes[child].shadow_stack = (uint64_t) kmalloc_p(STACK_SIZE);

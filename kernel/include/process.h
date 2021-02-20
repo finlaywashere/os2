@@ -22,8 +22,7 @@
 
 struct descriptor{
 	uint8_t flags;
-	uint64_t parent_pid;
-	uint64_t did;
+	uint64_t id;
 	uint8_t* buffer;
 	uint64_t buffer_size;
 	uint64_t buffer_seek;
@@ -51,3 +50,6 @@ uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t pare
 uint64_t create_file_descriptor(uint64_t pid, char* filename, uint64_t size);
 void kill_process(uint64_t code);
 process_t* get_process();
+uint8_t configure_descriptors(uint64_t pid, uint64_t parent);
+uint64_t fork_process(uint64_t parent, registers_t* regs);
+uint64_t get_curr_process();

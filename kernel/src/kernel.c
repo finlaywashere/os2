@@ -39,9 +39,7 @@ void kernel_start(){
 	log_debug("Initialized processes!\n");
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	uint64_t entry_point = load_elf("/test.elf", dst);
-	uint64_t pid = create_process(dst, entry_point,0);
-	log_verb("PID: ");
-	log_error_num(pid,10);
+	create_process(dst, entry_point,0);
 	while(1){
 		// Infinite loop
 	}

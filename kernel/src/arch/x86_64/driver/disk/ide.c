@@ -1,5 +1,7 @@
 #include <arch/x86_64/driver/disk/ide.h>
 
+#define SLEEP_CYCLES 1000
+
 char* ide_buf;
 char irq_invoked = 0;
 char atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -55,9 +57,11 @@ void init_ide(){
 			int count = i*2+j;
 			devices[count].exists = 0; // Assume it doesn't exist
 			ide_write(i, ATA_REG_HDDEVSEL, 0xA0 | (j << 4)); // If bit 4 is set then the secondary drive is selected
-			sleep(1);
+			for(int i = 0; i < SLEEP_CYCLES; i++)
+				ide_read(i,ATA_REG_ALTSTATUS);
 			ide_write(i,ATA_REG_COMMAND,ATA_CMD_IDENTIFY); // Send identify command
-			sleep(1);
+			for(int i = 0; i < SLEEP_CYCLES; i++)
+				ide_read(i,ATA_REG_ALTSTATUS);
 			if(ide_read(i,ATA_REG_STATUS) == 0) continue; // Device doesn't exist if status is 0
 			uint8_t error = 0;
 			while(1){
@@ -155,7 +159,8 @@ void ide_read_buffer(uint8_t channel, uint8_t reg, uint32_t* buffer, uint32_t co
                 ide_write(channel,ATA_REG_CONTROL, channels[channel].no_interrupt);
 }
 uint8_t ide_poll(uint8_t channel, uint8_t error_check){
-	sleep(1);
+	for(int i = 0; i < SLEEP_CYCLES; i++)
+		ide_read(i,ATA_REG_ALTSTATUS);
 	while((ide_read(channel,ATA_REG_STATUS) & ATA_SR_BSY) == 1) ;
 	
 	if(error_check){

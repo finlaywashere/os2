@@ -1,0 +1,103 @@
+--- binutils-2.35.90-orig/bfd/config.bfd	2021-02-20 22:51:39.235860770 -0500
++++ binutils-2.35.90/bfd/config.bfd	2021-02-20 22:54:41.562636173 -0500
+@@ -224,7 +224,16 @@
+ 
+ case "${targ}" in
+ # START OF targmatch.h
++  i[3-7]86-*-fos*)
++    targ_defvec=i486_elf32_vec
++    targ_selvecs=
++    ;;
+ #ifdef BFD64
++  x86_64-*-fos*)
++    targ_defvec=x86_64_elf64_vec
++    targ_selvecs=i386_elf32_vec
++    want64=true
++    ;;
+   aarch64-*-darwin*)
+     targ_defvec=aarch64_mach_o_vec
+     targ_selvecs="arm_mach_o_vec mach_o_le_vec mach_o_be_vec mach_o_fat_vec"
+--- binutils-2.35.90-orig/config.sub	2021-02-20 22:51:38.842527198 -0500
++++ binutils-2.35.90/config.sub	2021-02-20 22:52:51.995904555 -0500
+@@ -1722,7 +1722,7 @@
+ 	     | skyos* | haiku* | rdos* | toppers* | drops* | es* \
+ 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
+ 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
+-	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx*)
++	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | fos*)
+ 		;;
+ 	# This one is extra strict with allowed versions
+ 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+--- binutils-2.35.90-orig/gas/configure.tgt	2021-02-20 22:51:39.042527320 -0500
++++ binutils-2.35.90/gas/configure.tgt	2021-02-20 22:55:39.266003326 -0500
+@@ -123,6 +123,7 @@
+ generic_target=${cpu_type}-$vendor-$os
+ # Note: This table is alpha-sorted, please try to keep it that way.
+ case ${generic_target} in
++  i386-*-fos*)	fmt=elf em=gnu ;;
+   aarch64*-*-elf*)			fmt=elf;;
+   aarch64*-*-fuchsia*)			fmt=elf;;
+   aarch64*-*-linux*)			fmt=elf em=linux
+--- binutils-2.35.90-orig/ld/configure.tgt	2021-02-20 22:51:38.845860533 -0500
++++ binutils-2.35.90/ld/configure.tgt	2021-02-20 22:57:25.682731739 -0500
+@@ -43,6 +43,14 @@
+ # Please try to keep this table more or less in alphabetic order - it
+ # makes it much easier to lookup a specific archictecture.
+ case "${targ}" in
++i[3-7]86-*-fos*)
++			targ_emul=elf_i386_fos
++			targ_extra_emuls=elf_i386
++			;;
++x86_64-*-fos*)
++			targ_emul=elf_x86_64_fos
++			targ_extra_emuls="elf_i386_fos elf_x86_64 elf_i386"
++			;;
+ aarch64_be-*-elf)	targ_emul=aarch64elfb
+ 			targ_extra_emuls="aarch64elf aarch64elf32 aarch64elf32b armelfb armelf"
+ 			;;
+--- binutils-2.35.90-orig/ld/emulparams/elf_i386_fos.sh	1969-12-31 19:00:00.000000000 -0500
++++ binutils-2.35.90/ld/emulparams/elf_i386_fos.sh	2021-02-20 23:01:13.928560028 -0500
+@@ -0,0 +1,3 @@
++. ${srcdir}/emulparams/elf_i386.sh
++GENERATE_SHLIB_SCRIPT=yes
++GENERATE_PIE_SCRIPT=yes
+--- binutils-2.35.90-orig/ld/emulparams/elf_x86_64_fos.sh	1969-12-31 19:00:00.000000000 -0500
++++ binutils-2.35.90/ld/emulparams/elf_x86_64_fos.sh	2021-02-20 23:01:25.321847158 -0500
+@@ -0,0 +1 @@
++. ${srcdir}/emulparams/elf_x86_64.sh
+--- binutils-2.35.90-orig/ld/Makefile.am	2021-02-20 22:51:38.845860533 -0500
++++ binutils-2.35.90/ld/Makefile.am	2021-02-20 22:58:23.849382335 -0500
+@@ -152,6 +152,7 @@
+ 
+ # These all start with e so 'make clean' can find them.
+ ALL_EMULATION_SOURCES = \
++	eelf_i386_fos.c \
+ 	eaix5ppc.c \
+ 	eaix5rs6.c \
+ 	eaixppc.c \
+@@ -382,6 +383,7 @@
+ ALL_EMULATIONS = $(ALL_EMULATION_SOURCES:.c=.@OBJEXT@)
+ 
+ ALL_64_EMULATION_SOURCES = \
++	eelf_x86_64_fos.c \
+ 	eaarch64elf.c \
+ 	eaarch64elf32.c \
+ 	eaarch64elfb.c \
+@@ -645,6 +645,8 @@
+ # lines in Makefile.in, but I can't see a way of doing that.  Generating
+ # the includes at configure time is possible but then we'd need to
+ # duplicate autoconf/automake handling of dependency files.
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_i386_fos.Pc@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_x86_64_fos.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eaix5ppc.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eaix5rs6.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eaixppc.Pc@am__quote@
+@@ -948,7 +950,6 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf_x86_64_sol2.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ehppa64linux.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ei386pep.Pc@am__quote@
+-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/emmo.Pc@am__quote@
+ 
+ # We need this for automake to use YLWRAP.
+ EXTRA_ld_new_SOURCES = deffilep.y ldlex.l
+

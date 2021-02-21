@@ -2,6 +2,9 @@
 
 #define SLEEP_CYCLES 1000
 
+channel_registers_t channels[2];
+ide_device_t devices[4];
+
 char* ide_buf;
 char irq_invoked = 0;
 char atapi_packet[12] = {0xA8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

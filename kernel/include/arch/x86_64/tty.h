@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TTY_H
+#define TTY_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -42,3 +43,5 @@ void tty_putchars(uint64_t tty, char* characters, uint64_t count);
 void tty_writestring(uint64_t tty, char* str);
 void tty_setcolour(uint64_t tty, uint8_t foreground, uint8_t background);
 uint8_t tty_getcolour(uint64_t tty);
+
+#endif

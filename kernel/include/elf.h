@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ELF_H
+#define ELF_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -57,3 +58,4 @@ typedef struct elf_program_header elf_program_header_t;
 
 uint64_t load_elf(char* name, page_table_t* dst);
 
+#endif

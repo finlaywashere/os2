@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PMM_H
+#define PMM_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -23,3 +24,4 @@ void init_kmalloc();
 void* kmalloc(uint64_t size,uint64_t alignment);
 void kfree(void* base, uint64_t size);
 
+#endif

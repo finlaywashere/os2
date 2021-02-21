@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FS_H
+#define FS_H
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -25,3 +27,5 @@ typedef struct fs_node fs_node_t;
 void init_filesystems();
 void get_file(char* name, fs_node_t* dst_buffer);
 void set_root_directory(fs_node_t* root);
+
+#endif

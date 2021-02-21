@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IDE_H
+#define IDE_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -93,8 +94,8 @@ struct channel_registers{
 	uint16_t control_base;
 	uint16_t bus_master_ide;
 	uint8_t no_interrupt;
-} channels[2];
-
+};
+typedef struct channel_registers channel_registers_t;
 struct ide_device{
 	uint8_t exists; // 0 = Doesn't exist, 1 = Exists
 	uint8_t channel; // 0 = Primary, 1 = Secondary
@@ -105,8 +106,8 @@ struct ide_device{
 	uint32_t command_set;
 	uint32_t size; // In sectors
 	char model[41];
-} devices[4];
-
+};
+typedef struct ide_device ide_device_t;
 void init_ide();
 uint8_t ide_read(uint8_t channel, uint8_t reg);
 void ide_write(uint8_t channel, uint8_t reg, uint8_t data);
@@ -115,3 +116,5 @@ uint8_t ide_poll(uint8_t channel, uint8_t error_check);
 uint8_t ide_ata_access(uint8_t direction, uint8_t drive, uint32_t lba, uint8_t count, uint8_t* buffer);
 uint8_t ide_ata_read(uint8_t drive, uint8_t sectors, uint32_t lba, uint8_t* buffer);
 uint8_t ide_ata_write(uint8_t drive, uint8_t sectors, uint32_t lba, uint8_t* buffer);
+
+#endif

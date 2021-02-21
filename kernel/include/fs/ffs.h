@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FFS_H
+#define FFS_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -53,3 +54,4 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer);
 void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t length, fs_node_t* buffer);
 uint64_t ffs_dir_entries(fs_node_t* file);
 
+#endif

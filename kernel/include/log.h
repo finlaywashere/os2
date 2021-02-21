@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LOG_H
+#define LOG_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -21,3 +22,5 @@ void log_warnl(char* message, uint64_t len);
 void log_debugl(char* message, uint64_t len);
 void log_verbl(char* message, uint64_t len);
 void logl(char* message, uint8_t foreground, uint8_t background, uint64_t len);
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ACPI_H
+#define ACPI_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -33,3 +34,4 @@ void init_acpi();
 int acpi_checksum(acpi_header_t* header);
 acpi_header_t* get_acpi_table(char* sig);
 
+#endif

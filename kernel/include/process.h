@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROCESS_H
+#define PROCESS_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -55,3 +56,5 @@ process_t* get_process();
 uint8_t configure_descriptors(uint64_t pid, uint64_t parent);
 uint64_t fork_process(uint64_t parent, registers_t* regs);
 uint64_t get_curr_process();
+
+#endif

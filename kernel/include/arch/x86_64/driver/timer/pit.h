@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PIT_H
+#define PIT_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -10,3 +11,5 @@ void init_pit();
 void pit_count(registers_t* regs);
 void pit_sleep(uint64_t ms);
 uint64_t pit_get_ticks();
+
+#endif

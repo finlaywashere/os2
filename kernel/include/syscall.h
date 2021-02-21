@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SYSCALL_H
+#define SYSCALL_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -9,3 +10,5 @@
 #define CUTOFF_MEM 0xffff000000000000
 
 void init_syscalls();
+
+#endif

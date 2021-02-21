@@ -7,7 +7,7 @@ BUILDDIR = bin
 ARCHDIR = $(SRCDIR)/arch/$(ARCH)
 
 AS = nasm
-CC = x86_64-elf-gcc
+CC = x86_64-elf-fos-gcc
 
 include $(ARCHDIR)/Makefile
 

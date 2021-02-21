@@ -8,7 +8,7 @@ BUILDDIR = bin
 STAGE1ARCHDIR = $(SRCDIR)/arch/$(STAGE1ARCH)
 STAGE2ARCHDIR = $(SRCDIR)/arch/$(STAGE2ARCH)
 AS = nasm
-CC = x86_64-elf-gcc
+CC = x86_64-elf-fos-gcc
 
 QEMU = qemu-system-x86_64
 ISO = bootloader.iso

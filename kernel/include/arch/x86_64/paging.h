@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PAGING_H
+#define PAGING_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -19,3 +20,4 @@ void set_page_directory(page_table_t* pd);
 page_table_t* get_curr_page_directory();
 page_table_t* hard_copy(page_table_t* table);
 
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DISK_H
+#define DISK_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -23,3 +24,4 @@ void init_disks();
 uint8_t read_disk(uint8_t id, uint64_t lba, uint64_t count, uint8_t* buffer);
 uint8_t write_disk(uint8_t id, uint64_t lba, uint64_t count, uint8_t* buffer);
 
+#endif

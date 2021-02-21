@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IDT_H
+#define IDT_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -105,3 +106,5 @@ extern void irq80();
 void init_idt();
 void set_idt_gate(int index, uint64_t addr, uint16_t selector, uint8_t type);
 void isr_handler(registers_t regs);
+
+#endif

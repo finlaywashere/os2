@@ -30,6 +30,30 @@ page_table_t* get_page_directory(){
 void flush_tlb(uint64_t addr){
 	asm volatile("invlpg (%0)" :: "r" (addr) : "memory");
 }
+uint64_t find_first_available_page(){
+	for(int i1 = 0; i1 < 512; i1++){
+        if(i1 > 128){
+        	return -1;
+		}
+        uint64_t p4_entry = page_directory->entries[i1];
+        if(p4_entry == 0){
+            return i1 << 39;
+		}
+        page_table_t* p3_table = (page_table_t*) ((p4_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000); // Get P3 table in memory
+        for(int i2 = 0; i2 < 512; i2++){
+            uint64_t p3_entry = p3_table->entries[i2];
+            if(p3_entry == 0)
+                return (i1 << 39) | (i2 << 30);
+            page_table_t* p2_table = (page_table_t*) ((p3_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000); // Get P2 table in memory
+            for(int i3 = 0; i3 < 512; i3++){
+                uint64_t p2_entry = p2_table->entries[i3];
+                if(p2_entry == 0)
+                    return (i1 << 39) | (i2 << 30) | (i3 << 21);
+            }
+        }
+    }
+	return -1;
+}
 uint64_t get_physical_addr(uint64_t virtual){
 	int p4_index = (virtual >> 39) & 0x1FF; // Get index in P4 table
 	uint64_t p4_entry = page_directory->entries[p4_index];

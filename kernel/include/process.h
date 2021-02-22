@@ -8,6 +8,7 @@
 #include <arch/x86_64/tty.h>
 #include <mem/vmm.h>
 #include <utils.h>
+#include <log.h>
 
 #define PROCESS_DEAD 0
 #define PROCESS_RUNNING 1
@@ -47,9 +48,9 @@ typedef struct process process_t;
 
 void init_processes();
 void schedule(registers_t* regs);
-uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t parent);
-void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry, uint64_t parent);
-void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t entry);
+uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc);
+void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc);
+void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t entry, char* argv[], int argc, char* envp[], int envc);
 uint64_t create_file_descriptor(uint64_t pid, char* filename, uint64_t size);
 void kill_process(uint64_t code);
 process_t* get_process();

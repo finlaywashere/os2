@@ -8,16 +8,14 @@ void syscall(registers_t* regs){
 		uint64_t count = regs->rcx;
 		uint64_t descriptor = regs->rdx;
 		if(buffer_addr < 0 || buffer_addr >= CUTOFF_MEM || count < 0 || count > CUTOFF_MEM || buffer_addr + count > CUTOFF_MEM){
-			regs->rax = 0;
-			regs->rbx = 1;
+			regs->rax = -1;
 			asm volatile("sti");
 			return;
 		}
 		uint8_t* buffer = (uint8_t*) buffer_addr;
 		process_t* process = get_process();
 		if(descriptor < 0 || descriptor > process->count){
-			regs->rax = 0;
-			regs->rbx = 2;
+			regs->rax = -2;
 			asm volatile("sti");
 			return;
 		}
@@ -31,16 +29,14 @@ void syscall(registers_t* regs){
 		uint64_t count = regs->rcx;
 		uint64_t descriptor = regs->rdx;
 		if(buffer_addr < 0 || buffer_addr >= CUTOFF_MEM || count < 0 || count > CUTOFF_MEM || buffer_addr + count > CUTOFF_MEM || descriptor < 0){
-			regs->rax = 0;
-			regs->rbx = 1;
+			regs->rax = -1;
 			asm volatile("sti");
 			return;
 		}
 		uint8_t* buffer = (uint8_t*) buffer_addr;
 		process_t* process = get_process();
 		if(descriptor < 0 || descriptor > process->count){
-			regs->rax = 0;
-			regs->rbx = 2;
+			regs->rax = -2;
 			asm volatile("sti");
 			return;
 		}
@@ -68,7 +64,7 @@ void syscall(registers_t* regs){
 		process_t* process_data = get_process();
 		page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 		uint64_t entry_point = load_elf(buffer, dst);
-		create_process_pid_nodesc(process, dst, entry_point);
+		create_process_pid_nodesc(process, dst, entry_point,0,0,0,0);
 		
 		memcpy(&process_data->regs,regs,sizeof(registers_t));
 		

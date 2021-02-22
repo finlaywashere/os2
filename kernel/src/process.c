@@ -132,19 +132,19 @@ uint64_t fork_process(uint64_t parent, registers_t* regs){
 	curr_max_process++;
 	return child;
 }
-uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t parent){
+uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc){
 	uint64_t slot = find_slot();
 	if(slot == 0)
 		return 0;
-	create_process_pid(slot,loaded_data,entry,parent);
+	create_process_pid(slot,loaded_data,entry,parent,argv,argc,envp,envc);
 	curr_max_process++;
 	return slot;
 }
-void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry, uint64_t parent){
+void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc){
 	asm volatile("cli");
 	uint64_t slot = pid;
 	
-	create_process_pid_nodesc(pid,loaded_data,entry);
+	create_process_pid_nodesc(pid,loaded_data,entry,argv,argc,envp,envc);
 	processes[slot].parent = parent;
 
 	configure_descriptors(slot,parent);
@@ -152,17 +152,40 @@ void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry,
 	asm volatile("sti");
 	return slot;
 }
-void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t entry){
+void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t entry, char* argv[], int argc, char* envp[], int envc){
 	asm volatile("cli");
     uint64_t slot = pid;
 	memset(&processes[slot].regs,0,sizeof(registers_t));
+	
+	page_table_t* curr_dir = get_curr_page_directory();
+	set_page_directory(loaded_data);
+
+	// Setup process' stack
+	// 2MiB stack for convenience
+	uint64_t stack = (uint64_t) kmalloc_pa(0x200000,0x200000);
+	uint64_t vaddr = find_first_available_page();
+	if(vaddr == -1){
+		panic("Error: Out of memory!");
+	}
+	map_page(get_physical_addr(stack),vaddr,0b111); // User, write, present
+		
+	set_page_directory(curr_dir);
+	
     processes[slot].page_table = loaded_data;
+	processes[slot].regs.userrsp = vaddr; // Set stack pointer
     processes[slot].regs.rip = entry;
     processes[slot].regs.cs = 0x1b;
     processes[slot].shadow_stack = (uint64_t) kmalloc_p(STACK_SIZE);
     processes[slot].regs.ds = 0x23;
     processes[slot].regs.userss = 0x23;
     processes[slot].regs.rflags = 0b1000000010;
+	
+	// Setup argv,argc,envp,envc for program
+	processes[slot].regs.rdi = (uint64_t) argc;
+	processes[slot].regs.rsi = (uint64_t) argv;
+	processes[slot].regs.rdx = (uint64_t) envc;
+	processes[slot].regs.rcx = (uint64_t) envp;
+	
     processes[slot].status = PROCESS_READY;
     processes[slot].count = MAX_DESCRIPTOR_COUNT;
 

@@ -8,6 +8,7 @@ ARCHDIR = $(SRCDIR)/arch/$(ARCH)
 
 AS = nasm
 CC = x86_64-elf-fos-gcc
+AR = x86_64-elf-fos-ar
 
 include $(ARCHDIR)/Makefile
 
@@ -44,7 +45,7 @@ libc: $(OBJS)
 .asm.o:
 	$(AS) $(AFLAGS) $^ -o $@
 link:
-	$(CC) -o $(BUILDDIR)/libc.elf $(CFLAGS) $(LINK_LIST)
+	$(AR) rcs bin/libc.a $(OBJS)
 clean:
 	rm -rf $(BUILDDIR)
 	rm -f $(OBJS)

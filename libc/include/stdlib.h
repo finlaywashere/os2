@@ -6,8 +6,14 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-void (*termination_function)(void);
+#define PROT_EXEC 1
+#define PROT_READ 2
+#define PROT_WRITE 4
+#define PROT_NONE 8
 
+#define MAP_ANONYMOUS 1
+
+void mmap(void*,size_t,int,int,int,int);
 void abort(void);
 int atexit(void (*)(void));
 int atoi(const char*);

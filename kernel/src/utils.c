@@ -11,6 +11,8 @@ uint64_t strlen(char* str){
 		if(str[len] == 0x0)
 			return len;
 		len++;
+		if(len > 10000) // Time out
+			return -1;
 	}
 }
 int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count){

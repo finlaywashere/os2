@@ -4,7 +4,7 @@ int printf(const char* str, ...){
 	return fprintf(stdout,str);
 }
 size_t fwrite(const void* buffer, size_t element_size, size_t num_elements, FILE* file){
-	uint64_t result = syscall(1,(uint64_t) buffer, (uint64_t) (element_size*num_elements), file->id);
+	uint64_t result = syscall(1,(uint64_t) buffer, (uint64_t) (element_size*num_elements), file->id,0,0);
 	return (size_t) (result/element_size);
 }
 int fclose(FILE* file){
@@ -53,7 +53,7 @@ int fprintf(FILE* file, const char* str, ...){
     return result-j;
 }
 size_t fread(void* buffer, size_t element_size, size_t num_elements, FILE* file){
-	uint64_t result = syscall(2,(uint64_t) buffer, (uint64_t) (element_size*num_elements), file->id);
+	uint64_t result = syscall(2,(uint64_t) buffer, (uint64_t) (element_size*num_elements), file->id,0,0);
     return (size_t) (result/element_size);
 }
 int fseek(FILE* file, long offset, int whence){

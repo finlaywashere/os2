@@ -22,7 +22,7 @@ $(OBJS) \
 $(LIBS)
 
 AFLAGS = -felf64 -g -F dwarf
-CFLAGS = -g -F dwarf
+CFLAGS = -g -F dwarf -mno-sse -mno-sse2 -fno-tree-vectorize
 
 .PHONY: testprograms link clean setup iso
 .SUFFIXES: .o .c .asm
@@ -44,4 +44,3 @@ clean:
 setup:
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(SRCDIR)
-	@mkdir -p $(INCLUDEDIR)

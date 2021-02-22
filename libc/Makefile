@@ -14,7 +14,8 @@ include $(ARCHDIR)/Makefile
 
 OBJS = $(ARCH_OBJS) \
 src/libc.o \
-src/syscall.o
+src/syscall.o \
+src/stdio.o
 
 LINK_LIST=\
 $(LDFLAGS) \
@@ -28,6 +29,9 @@ CFLAGS= \
 -O2 \
 -g \
 -F dwarf \
+-mno-sse \
+-mno-sse2 \
+-fno-tree-vectorize \
 -Wextra \
 -Wall \
 -mno-red-zone \

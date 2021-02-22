@@ -14,11 +14,13 @@ build: install-headers
 clean:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) clean
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) clean
-	@export NAME=$(NAME) && cd bootloader && $(MAKE) clean
+	@export NAME=$(NAME) && cd bootloader/ && $(MAKE) clean
+	@export NAME=$(NAME) && cd test_programs/ && $(MAKE) clean
 	@rm -f disk.iso
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) setup
-	@export NAME=$(NAME) && cd bootloader && $(MAKE) setup
+	@export NAME=$(NAME) && cd bootloader/ && $(MAKE) setup
+	@export NAME=$(NAME) && cd test_programs/ && $(MAKE) setup
 install-headers:
 	rm -rf sysroot/
 	mkdir -p sysroot/usr/include/

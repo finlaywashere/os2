@@ -2,12 +2,16 @@
 #define _STDIO_H
 #include <stdarg.h>
 #include <stddef.h>
+#include <syscall.h>
 #define SEEK_SET 0
-typedef struct { int unused; } FILE;
+struct file{
+	uint64_t id;
+};
+typedef struct file FILE;
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern FILE* stderr;
+extern FILE *stderr, *stdout, *stdin;
 #define stderr stderr
 int fclose(FILE*);
 int fflush(FILE*);
@@ -19,6 +23,7 @@ long ftell(FILE*);
 size_t fwrite(const void*, size_t, size_t, FILE*);
 void setbuf(FILE*, char*);
 int vfprintf(FILE*, const char*, va_list);
+int printf(const char*, ...);
 #ifdef __cplusplus
 }
 #endif

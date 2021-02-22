@@ -1,6 +1,7 @@
 #ifndef _UNISTD_H
 #define _UNISTD_H
 #include <sys/types.h>
+#include <syscall.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -14,8 +14,11 @@ include $(ARCHDIR)/Makefile
 
 OBJS = $(ARCH_OBJS) \
 src/libc.o \
-src/syscall.o \
-src/stdio.o
+src/stdio.o \
+src/string.o \
+src/stdio.o \
+src/stdlib.o \
+src/unistd.o
 
 LINK_LIST=\
 $(LDFLAGS) \

@@ -13,6 +13,11 @@ extern "C" {
 #endif
 extern FILE *stderr, *stdout, *stdin;
 #define stderr stderr
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 int fclose(FILE*);
 int fflush(FILE*);
 FILE* fopen(const char*, const char*);

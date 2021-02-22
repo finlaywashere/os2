@@ -19,6 +19,10 @@ clean:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) setup
 	@export NAME=$(NAME) && cd bootloader && $(MAKE) setup
+install-headers:
+	rm -rf sysroot/
+	mkdir -p sysroot/usr/include/
+	cp -r libc/include/* sysroot/usr/include/
 qemu:
 	$(QEMU) $(QEMUFLAGS) -monitor stdio
 debug:

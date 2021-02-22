@@ -48,6 +48,7 @@ ABINFLAGS = -f bin
 AFLAGS = -felf64
 LDFLAGS = -T $(STAGE2ARCHDIR)/linker.ld -shared -Bsymbolic -nostdlib
 
+.PHONY: link clean setup iso qemu debug gdb
 .SUFFIXES: .o .c .asm .asmb
 bootloader: $(OBJS)
 

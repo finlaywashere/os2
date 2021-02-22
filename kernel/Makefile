@@ -52,6 +52,7 @@ CFLAGS= \
 AFLAGS = -felf64 -g -F dwarf
 LDFLAGS = -T $(ARCHDIR)/linker.ld -shared -Bsymbolic -nostdlib
 
+.PHONY: link kernel clean setup
 .SUFFIXES: .o .c .asm
 kernel: $(OBJS)
 

@@ -6,3 +6,4 @@
 *.iso
 *.efi
 *.bin
+sysroot/

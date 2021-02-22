@@ -168,11 +168,11 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 		panic("Error: Out of memory!");
 	}
 	map_page(get_physical_addr(stack),vaddr,0b111); // User, write, present
-		
+	
 	set_page_directory(curr_dir);
 	
     processes[slot].page_table = loaded_data;
-	processes[slot].regs.userrsp = vaddr; // Set stack pointer
+	processes[slot].regs.userrsp = vaddr+0x200000; // Set stack pointer, note that stack grows down
     processes[slot].regs.rip = entry;
     processes[slot].regs.cs = 0x1b;
     processes[slot].shadow_stack = (uint64_t) kmalloc_p(STACK_SIZE);

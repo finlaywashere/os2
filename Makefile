@@ -4,11 +4,11 @@ QEMU = qemu-system-x86_64
 
 QEMUFLAGS = --no-reboot -no-shutdown -drive file=disk.iso,id=drive0,if=ide -drive file=ffs.iso,id=drive1,if=ide
 
-build:
+build: install-headers
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link
-	@export NAME=$(NAME) && cd libc/ && $(MAKE)
-	@export NAME=$(NAME) && cd bootloader && $(MAKE)
-	export NAME=$(NAME) && cd bootloader && $(MAKE) iso
+	@export NAME=$(NAME) && cd libc/ && $(MAKE) && $(MAKE) link && $(MAKE) install
+	@export NAME=$(NAME) && cd bootloader/ && $(MAKE) && $(MAKE) iso
+	@export NAME=$(NAME) && cd test_programs/ && $(MAKE) && $(MAKE) iso
 	cp bootloader/bootloader.iso disk.iso
 	dd if=kernel/bin/kernel.elf of=disk.iso bs=512 seek=33 count=94
 clean:

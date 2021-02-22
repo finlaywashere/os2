@@ -16,7 +16,7 @@ uint64_t load_elf(char* name, page_table_t* dst){
 	
 	for(int i = 0; i < header->program_header_num_entries; i++){
 		elf_program_header_t* p_header = (elf_program_header_t*) header_addr;
-		uint8_t* section_buffer = (uint8_t*) kmalloc_pa(p_header->file_size/0x200000 + (p_header->file_size % 0x200000 > 0 ? 1 : 0),0x200000);
+		uint8_t* section_buffer = (uint8_t*) kmalloc_pa(p_header->file_size/0x200000 + (p_header->file_size % 0x200000 > 0 ? 1 : 0),0x200000) + p_header->memory_data_offset%0x200000;
 		memcpy((uint8_t*)(((uint64_t)buffer)+p_header->file_data_offset),section_buffer,p_header->file_size);
 		map_pages(get_physical_addr((uint64_t) section_buffer), p_header->memory_data_offset, 0b111, p_header->memory_size);
 		header_addr += header->program_header_entry_size;

@@ -12,7 +12,9 @@ AR = x86_64-elf-fos-ar
 
 include $(ARCHDIR)/Makefile
 
-OBJS = $(ARCH_OBJS)
+OBJS = $(ARCH_OBJS) \
+src/libc.o \
+src/syscall.o
 
 LINK_LIST=\
 $(LDFLAGS) \
@@ -26,7 +28,6 @@ CFLAGS= \
 -O2 \
 -g \
 -F dwarf \
--ffreestanding \
 -Wextra \
 -Wall \
 -mno-red-zone \
@@ -36,7 +37,7 @@ CFLAGS= \
 AFLAGS = -felf64 -g -F dwarf
 LDFLAGS = -T $(ARCHDIR)/linker.ld -shared -Bsymbolic -nostdlib
 
-.PHONY: libc link clean setup
+.PHONY: libc link clean setup install
 .SUFFIXES: .o .c .asm
 libc: $(OBJS)
 
@@ -46,6 +47,10 @@ libc: $(OBJS)
 	$(AS) $(AFLAGS) $^ -o $@
 link:
 	$(AR) rcs bin/libc.a $(OBJS)
+	cp $(ARCHDIR)/crt*.o bin/
+install:
+	mkdir -p ../sysroot/usr/lib/
+	cp bin/* ../sysroot/usr/lib/
 clean:
 	rm -rf $(BUILDDIR)
 	rm -f $(OBJS)

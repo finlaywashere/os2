@@ -44,14 +44,66 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 		buffer[i].read_file = &ffs_read_file;
 		buffer[i].write_file = &ffs_write_file;
 		buffer[i].read_dir = &ffs_read_dir;
-        	buffer[i].dir_entries = &ffs_dir_entries;
-	        buffer[i].write_dir = &ffs_write_dir;
+		buffer[i].dir_entries = &ffs_dir_entries;
+		buffer[i].write_dir = &ffs_write_dir;
 	}
 	kfree_p(entries,sizeof(ffs_entry_t)*entry_count);
 }
 
 void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
+	uint64_t file_length = file->length/512 + (file->length % 512 > 0 ? 1 : 0);
+	signed long size_diff = (file->length-offset-length) * -1;
+	if(size_diff < 0)
+		size_diff = 0;
+	uint64_t new_blocks = size_diff/512+(size_diff%512>0?1:0);
+	uint64_t offset_sectors = offset/512;
+	uint64_t blocks[new_blocks+1];
+	uint64_t first_sector = file->inode & 0x00FFFFFFFFFFFFFF;
+	uint8_t fs_index = (uint8_t) (file->inode >> 56); // Grab disk number from file inode
+	uint64_t num_chain_sectors = (ffs[fs_index].parameters.first_data_sector)-(ffs[fs_index].parameters.chain_start_sector);
+	uint64_t last_sector = 0xffffffffffffffff;
+	for(uint64_t i = new_blocks; i > 0; i--){
+		int found = 0;
+		for(uint64_t j = 0; j < num_chain_sectors; j++){
+			if(found)
+				break;
+			for(int k = 0; k < 32; k++){
+				if(ffs[fs_index].chain_blocks[j].next_sector[k] == 0){
+					// Found free sector
+					ffs[fs_index].chain_blocks[j].next_sector[k] = last_sector;
+					blocks[i] = j*32+k;
+					last_sector = blocks[i];
+					found = 1;
+					break;
+				}
+			}
+		}
+		if(found == 0){
+			panic("Disk full!");
+		}
+	}
+	uint64_t sector = first_sector;
 	
+	for(uint64_t i = 0; i < file_length; i++){
+		uint64_t next_sector = ffs[fs_index].chain_blocks[sector/32].next_sector[sector%32];
+		if(next_sector == 0xffffffffffffffff)
+			break;
+		sector = next_sector;
+	}
+	blocks[0] = sector;
+	
+	if(new_blocks > 0){
+		ffs[fs_index].chain_blocks[blocks[0]/32].next_sector[blocks[0]%32] = blocks[1]; // Link together parts of the chain
+	}
+	for(uint64_t i = 0; i < new_blocks; i++){
+		if(i > offset_sectors){
+			
+		}else if(i == offset_sectors && offset % 512 > 0){
+			
+		}else{
+			
+		}
+	}
 }
 void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t length, fs_node_t* buffer){
 	

@@ -15,6 +15,17 @@ uint64_t strlen(char* str){
 			return -1;
 	}
 }
+int strcmp(char* str1, char* str2){
+	uint64_t len1 = strlen(str1);
+	uint64_t len2 = strlen(str2);
+	if(len1 != len2)
+		return 0;
+	for(uint64_t i = 0; i < len1; i++){
+		if(str1[i] != str2[i])
+			return 0;
+	}
+	return 1;
+}
 int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count){
 	for(uint64_t i = 0; i < count; i++){
 		if(mem1[i] != mem2[i])

@@ -30,7 +30,6 @@ void get_file(char* name, fs_node_t* dst_buffer){
 					curr = &buffer[j];
 					if(curr->type != 0){
 						memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
-						kfree_p(buffer,sizeof(fs_node_t)*dir_length);
 						return;
 					}
 				}
@@ -38,23 +37,23 @@ void get_file(char* name, fs_node_t* dst_buffer){
 		}
 		if(i == len-1){
 			char segment[21];
-		        for(uint64_t j = last_slash; j <= 20; j++){
+			for(uint64_t j = last_slash; j <= 20; j++){
 				if(j <= i)
-                                        segment[j-last_slash] = name[j];
-                                else
-                                        segment[j-last_slash] = 0;
+					segment[j-last_slash] = name[j];
+				else
+					segment[j-last_slash] = 0;
 			}
-           		uint64_t dir_length = curr->dir_entries(curr);
-		        fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*dir_length);
-                       	curr->read_dir(curr,buffer);
-		        for(uint64_t j = 0; j < dir_length; j++){
-                       	        if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){
-		                        curr = &buffer[j];
-                                       	memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
-		                        kfree_p(buffer,sizeof(fs_node_t)*dir_length);
-                       		        return;
-                               	}
-                       	}
+           	uint64_t dir_length = curr->dir_entries(curr);
+			fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*dir_length);
+			curr->read_dir(curr,buffer);
+			for(uint64_t j = 0; j < dir_length; j++){
+				if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){
+					curr = &buffer[j];
+					memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+					kfree_p(buffer,sizeof(fs_node_t)*dir_length);
+					return;
+				}
+			}
 		}
 	}
 	memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));

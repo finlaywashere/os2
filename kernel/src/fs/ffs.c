@@ -4,12 +4,53 @@ ffs_t* ffs;
 
 uint8_t root_disk;
 
+void ffs_update_file(fs_node_t* file){
+	fs_node_t* parent = file->parent;
+	uint64_t num_entries = parent->dir_entries(parent);
+	fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t) * num_entries);
+	parent->read_dir(parent,buffer);
+	for(uint64_t i = 0; i < num_entries; i++){
+		if(strcmp(&file->name,&buffer[i].name)){
+			// Found entry
+			uint64_t offset = i * sizeof(fs_node_t);
+			parent->write_dir(parent,offset,1,file);
+		}
+	}
+}
+
+void write_chain_entries(uint8_t fs_index){
+	write_disk(fs_index, ffs[fs_index].parameters.chain_start_sector, ffs[fs_index].parameters.first_data_sector-ffs[fs_index].parameters.chain_start_sector, ffs[fs_index].chain_blocks);
+}
+
 uint64_t ffs_dir_entries(fs_node_t* file){
 	if(file->type != 0)
 		return 0;
 	return file->length/sizeof(ffs_entry_t);
 }
-
+void ffs_mkdir(fs_node_t* dir, char* name){
+	uint8_t fs_index = (uint8_t) (dir->inode >> 56); // Grab disk number from file inode
+	uint64_t sector = 0;
+	for(uint64_t j = 0; j < ffs[fs_index].parameters.first_data_sector-ffs[fs_index].parameters.chain_start_sector; j++){
+		for(int k = 0; k < 32; k++){
+			if(ffs[fs_index].chain_blocks[j].next_sector[k] == 0){
+				// Found free sector
+				ffs[fs_index].chain_blocks[j].next_sector[k] = 0xffffffffffffffff;
+				sector = j*32+k;
+				break;
+			}
+		}
+	}
+	if(sector == 0){
+		panic("Disk full!");
+	}
+	write_chain_entries(fs_index);
+	fs_node_t* entry = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	uint64_t len = strlen(name);
+	memcpy(name,entry->name,len);
+	entry->inode = (((uint64_t)((uint8_t)(dir->inode >> 56))) << 56) | sector; // Set disk number and start sector as inode
+	uint64_t entries = dir->dir_entries(dir);
+	dir->write_dir(dir,entries*sizeof(ffs_entry_t),sizeof(ffs_entry_t), entry);
+}
 void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	uint64_t first_sector = file->inode & 0x00FFFFFFFFFFFFFF;
 	uint64_t offset_sector_index = offset/512;
@@ -46,6 +87,7 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 		buffer[i].read_dir = &ffs_read_dir;
 		buffer[i].dir_entries = &ffs_dir_entries;
 		buffer[i].write_dir = &ffs_write_dir;
+		buffer[i].parent = dir;
 	}
 	kfree_p(entries,sizeof(ffs_entry_t)*entry_count);
 }
@@ -57,6 +99,10 @@ void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* 
 	signed long size_diff = (file->length-offset-length) * -1;
 	if(size_diff < 0)
 		size_diff = 0;
+	if(file->length < offset+length){
+		file->length == offset+length;
+		ffs_update_file(file);
+	}
 	uint64_t new_blocks = size_diff/512+(size_diff%512>0?1:0);
 	uint64_t offset_sectors = offset/512;
 	uint64_t *blocks = (uint64_t*) kmalloc_p(sizeof(uint64_t)*(new_blocks+1));
@@ -96,7 +142,7 @@ void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* 
 	
 	if(new_blocks > 0){
 		ffs[fs_index].chain_blocks[blocks[0]/32].next_sector[blocks[0]%32] = blocks[1]; // Link together parts of the chain
-		write_disk(fs_index, ffs[fs_index].parameters.chain_start_sector, num_chain_sectors, ffs[fs_index].chain_blocks);
+		write_chain_entries(fs_index);
 	}
 	
 	for(uint64_t i = 0; i < new_blocks+1; i++){
@@ -113,10 +159,18 @@ void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* 
 		}
 	}
 }
-void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t length, fs_node_t* buffer){
-	
+void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t count, fs_node_t* buffer){
+	uint64_t num_entries = count;
+	uint64_t actual_size = num_entries*sizeof(ffs_entry_t);
+	ffs_entry_t* entries = (ffs_entry_t*) kmalloc_p(actual_size);
+	for(uint64_t i = 0; i < num_entries; i++){
+		memcpy(&buffer[i].name,&entries[i].name,20); // Copy name
+		entries[i].length = buffer[i].length;
+		entries[i].start_sector = buffer[i].inode & 0x00FFFFFFFFFFFFFF;
+		entries[i].type = buffer[i].type;
+	}
+	file->write_file(file,offset,actual_size,(uint8_t*) entries);
 }
-
 
 void init_ffs(){
 	root_disk = 0xff;
@@ -157,5 +211,3 @@ void init_ffs(){
 	root->length = entry.length;
 	set_root_directory(root);
 }
-fs_node_t* ffs_get_file(char* name);
-

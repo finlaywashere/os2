@@ -52,12 +52,14 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 
 void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	uint64_t file_length = file->length/512 + (file->length % 512 > 0 ? 1 : 0);
+	uint8_t* new_buffer = (uint8_t*) kmalloc_p(file_length*512);
+	memcpy(buffer,new_buffer,length);
 	signed long size_diff = (file->length-offset-length) * -1;
 	if(size_diff < 0)
 		size_diff = 0;
 	uint64_t new_blocks = size_diff/512+(size_diff%512>0?1:0);
 	uint64_t offset_sectors = offset/512;
-	uint64_t blocks[new_blocks+1];
+	uint64_t *blocks = (uint64_t*) kmalloc_p(sizeof(uint64_t)*(new_blocks+1));
 	uint64_t first_sector = file->inode & 0x00FFFFFFFFFFFFFF;
 	uint8_t fs_index = (uint8_t) (file->inode >> 56); // Grab disk number from file inode
 	uint64_t num_chain_sectors = (ffs[fs_index].parameters.first_data_sector)-(ffs[fs_index].parameters.chain_start_sector);
@@ -94,14 +96,20 @@ void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* 
 	
 	if(new_blocks > 0){
 		ffs[fs_index].chain_blocks[blocks[0]/32].next_sector[blocks[0]%32] = blocks[1]; // Link together parts of the chain
+		write_disk(fs_index, ffs[fs_index].parameters.chain_start_sector, num_chain_sectors, ffs[fs_index].chain_blocks);
 	}
-	for(uint64_t i = 0; i < new_blocks; i++){
-		if(i > offset_sectors){
-			
+	
+	for(uint64_t i = 0; i < new_blocks+1; i++){
+		if(i > offset_sectors || (i == offset_sectors && offset == 0)){
+			write_disk(fs_index, blocks[i], 1, (uint8_t*)(((uint64_t)new_buffer)+512*i));
 		}else if(i == offset_sectors && offset % 512 > 0){
+			uint8_t* tmp_buffer = (uint8_t*) kmalloc_p(512); // Allocate 512 byte temporary buffer
 			
-		}else{
+			read_disk(fs_index, blocks[i], 1, tmp_buffer);
+			memcpy(new_buffer,(uint8_t*) (((uint64_t)tmp_buffer)+(512-offset%512)),offset%512);
+			write_disk(fs_index, blocks[i], 1, tmp_buffer);
 			
+			kfree_p((uint64_t) tmp_buffer, 512);
 		}
 	}
 }

@@ -164,12 +164,38 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 	// 2MiB stack for convenience
 	uint64_t stack = (uint64_t) kmalloc_pa(0x200000,0x200000);
 	uint64_t vaddr = find_first_available_page();
-	if(vaddr == -1){
+	uint64_t args_kmem = (uint64_t) kmalloc_pa(0x200000,0x200000);
+	uint64_t args_page = find_first_available_page();
+	if(vaddr == -1 || args_page == -1){
 		panic("Error: Out of memory!");
 	}
 	map_page(get_physical_addr(stack),vaddr,0b111); // User, write, present
+	map_page(get_physical_addr(args_kmem),args_page,0b111); // User, write, present
 	
 	set_page_directory(curr_dir);
+	
+	uint8_t* dst = (uint8_t*) args_kmem;
+	uint8_t* arg_src = (uint8_t*) argv;
+	uint8_t* env_src = (uint8_t*) envp;
+	
+	uint64_t env_start = (argc+1) * sizeof(void*);
+	uint64_t len = (argc+envc+2)*sizeof(void*);
+	
+	for(int i = 0; i < len; i++){
+		if(i < env_start-sizeof(void*)){
+			// Args
+			dst[i] = arg_src[i];
+		}else if(i >= env_start-sizeof(void*) && i < env_start){
+			// Null
+			dst[i] = 0x0;
+		}else if(i < len-sizeof(void*)){
+			// Envp
+			dst[i] = env_src[i];
+		}else{
+			// Null
+			dst[i] = 0x0;
+		}
+	}
 	
     processes[slot].page_table = loaded_data;
 	processes[slot].regs.userrsp = vaddr+0x200000; // Set stack pointer, note that stack grows down
@@ -182,9 +208,9 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 	
 	// Setup argv,argc,envp,envc for program
 	processes[slot].regs.rdi = (uint64_t) argc;
-	processes[slot].regs.rsi = (uint64_t) argv;
+	processes[slot].regs.rsi = args_page;
 	processes[slot].regs.rdx = (uint64_t) envc;
-	processes[slot].regs.rcx = (uint64_t) envp;
+	processes[slot].regs.rcx = args_page + env_start;
 	
     processes[slot].status = PROCESS_READY;
     processes[slot].count = MAX_DESCRIPTOR_COUNT;

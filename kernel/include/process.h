@@ -62,5 +62,6 @@ uint8_t configure_descriptors(uint64_t pid, uint64_t parent);
 uint64_t fork_process(uint64_t parent, registers_t* regs);
 uint64_t get_curr_process();
 uint64_t open_file_descriptor(char* name, uint64_t mode);
-
+descriptor_t* get_descriptor(uint64_t id);
+fs_node_t* get_descriptor_file(uint64_t id);
 #endif

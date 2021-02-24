@@ -123,6 +123,63 @@ void syscall(registers_t* regs){
 		
 		asm volatile("sti");
 		return;
+	}else if(regs->rax == 7){
+		// Fseek
+		uint64_t id = regs->rbx;
+		uint64_t offset = regs->rcx;
+        uint64_t from = regs->rdx;
+		process_t* process = get_process();
+
+        if(value_safety(id, 0, process->count)){
+            regs->rax = -1;
+            asm volatile("sti");
+            return;
+        }
+
+        descriptor_t* desc = get_descriptor(id);
+		
+		uint64_t actual_offset = 0;
+		if(from == 0){
+			//SEEK_SET
+			actual_offset = offset;
+		}else if(from == 1){
+			//SEEK_CUR
+			actual_offset = desc->buffer_seek + offset;
+		}else if(from == 2){
+			//SEEK_END
+			actual_offset = desc->buffer_size + offset;
+		}else{
+			regs->rax = -1;
+			asm volatile("sti");
+			return;
+		}
+		
+		if(actual_offset >= desc->buffer_size){
+			regs->rax = -1;
+			asm volatile("sti");
+			return;
+		}
+		
+		desc->buffer_seek = actual_offset;
+		
+		asm volatile("sti");
+		return;
+	}else if(regs->rax == 8){
+		// Ftell
+		uint64_t id = regs->rbx;
+		process_t* process = get_process();
+		
+		if(value_safety(id, 0, process->count)){
+            regs->rax = -1;
+            asm volatile("sti");
+            return;
+        }
+		
+		descriptor_t* desc = get_descriptor(id);
+		regs->rax = desc->buffer_seek;
+		
+		asm volatile("sti");
+		return;
 	}
 }
 

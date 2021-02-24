@@ -156,7 +156,7 @@ void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* 
 			uint8_t* tmp_buffer = (uint8_t*) kmalloc_p(512); // Allocate 512 byte temporary buffer
 			
 			read_disk(fs_index, blocks[i], 1, tmp_buffer);
-			memcpy(new_buffer,(uint8_t*) (((uint64_t)tmp_buffer)+(512-offset%512)),offset%512);
+			memcpy(new_buffer,(uint8_t*) (((uint64_t)tmp_buffer)+offset%512),512-offset%512);
 			write_disk(fs_index, blocks[i], 1, tmp_buffer);
 			
 			kfree_p((uint64_t) tmp_buffer, 512);

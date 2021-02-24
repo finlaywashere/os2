@@ -11,7 +11,8 @@ int main(){
 	}
 	size_t count = fread(test,1,64,desc);
 	printf(test);
-	char* test2 = "hello145";
-	fwrite(test2,1,8,desc);
+	fseek(desc,5,SEEK_SET);
+	char* test2 = "hel";
+	fwrite(test2,1,3,desc);
 	while(1);
 }

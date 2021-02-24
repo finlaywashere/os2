@@ -61,12 +61,10 @@ size_t fread(void* buffer, size_t element_size, size_t num_elements, FILE* file)
     return (size_t) (result/element_size);
 }
 int fseek(FILE* file, long offset, int whence){
-	//TODO: Implement fseek
-	return 0;
+	return syscall(7,file->id,offset,(uint64_t) whence,0,0);
 }
 long ftell(FILE* file){
-	//TODO: Implement ftell (gets current position of stream)
-	return 0;
+	return syscall(8,file->id,0,0,0,0);
 }
 void setbuf(FILE* file, char* buffer){
 	//TODO: Implement setbuf (sets a file descriptor's buffer)

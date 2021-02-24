@@ -11,7 +11,9 @@ void init_processes(){
 	processes = (process_t*) kmalloc_p(sizeof(process_t)*MAX_PROCESS_COUNT); // Max of MAX_PROCESS_COUNT of processes
 	files = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*MAX_FILE_COUNT); // Max MAX_FILE_COUNT of open files
 }
-
+descriptor_t* get_descriptor(uint64_t id){
+	return &processes[curr_process].descriptors[id];
+}
 process_t* get_process(){
 	return &processes[curr_process];
 }
@@ -45,9 +47,11 @@ uint64_t read_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	uint64_t offset = descriptor->buffer_seek;
 	
 	fs_node_t* file = &files[descriptor->id]; // Grab file from the descriptor's internal id
-	file->read_file(file,offset,size,buffer);
+	uint64_t read = file->read_file(file,offset,size,buffer);
 	
-	return size;
+	descriptor->buffer_seek += read;
+	
+	return read;
 }
 uint64_t write_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	if(descriptor == 0)
@@ -57,8 +61,17 @@ uint64_t write_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
     fs_node_t* file = &files[descriptor->id]; // Grab file from the descriptor's internal id
     file->write_file(file,offset,size,buffer);
     
+	descriptor->buffer_size = file->length;
+	
 	return size;
 }
+fs_node_t* get_descriptor_file(uint64_t id){
+    descriptor_t desc = processes[curr_process].descriptors[id];
+    if(desc.read != &read_file)
+        return 0;
+    return &files[desc.id];
+}
+
 uint64_t read(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	if(descriptor == 0)
 		return 0;
@@ -161,6 +174,7 @@ uint64_t open_file_descriptor(char* name, uint64_t mode){
 	}
 	
 	processes[curr_process].descriptors[desc_slot].id = file_slot;
+	processes[curr_process].descriptors[desc_slot].buffer_size = files[file_slot].length;
 	processes[curr_process].descriptors[desc_slot].read = &read_file;
 	processes[curr_process].descriptors[desc_slot].write = &write_file;
 	return desc_slot;

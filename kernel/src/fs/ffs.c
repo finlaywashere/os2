@@ -58,9 +58,11 @@ void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* b
 	uint64_t last_sector_index = offset_sector_index+length_sectors;
 	uint64_t sector = first_sector;
 	uint8_t fs_index = (uint8_t) (file->inode >> 56); // Also the disk number
+	uint64_t tmp_length = length+(length%512 > 0 ? 512-length%512 : 0);
+	uint8_t* tmp_buffer = (uint8_t*) kmalloc_p(tmp_length);
 	for(int i = 0; i < last_sector_index; i++){
 		if(i >= offset_sector_index){
-			read_disk(fs_index, sector, 1, (uint8_t*) (((uint64_t)buffer)+512*i));
+			read_disk(fs_index, sector, 1, (uint8_t*) (((uint64_t)tmp_buffer)+512*i));
 		}
 		
 		uint64_t cb_index = sector / 32;
@@ -68,6 +70,8 @@ void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* b
 		
 		sector = ffs[fs_index].chain_blocks[cb_index].next_sector[cb_pos];
 	}
+	memcpy((uint8_t*)(((uint64_t)tmp_buffer)+offset%512),buffer,length);
+	kfree_p(tmp_buffer,tmp_length);
 }
 
 void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){

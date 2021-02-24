@@ -28,5 +28,5 @@ typedef struct fs_node fs_node_t;
 void init_filesystems();
 void get_file(char* name, fs_node_t* dst_buffer);
 void set_root_directory(fs_node_t* root);
-
+void create_file(char* name,fs_node_t* file);
 #endif

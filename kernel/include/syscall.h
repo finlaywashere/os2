@@ -7,6 +7,7 @@
 #include <arch/x86_64/idt.h>
 #include <process.h>
 #include <safety.h>
+#include <fs/fs.h>
 
 #define PROT_EXEC 1
 #define PROT_READ 2

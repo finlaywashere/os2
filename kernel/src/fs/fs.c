@@ -5,6 +5,9 @@ fs_node_t* root_directory;
 void init_filesystems(){
 	init_ffs();
 }
+void create_file(char* name,fs_node_t* file){
+	//TODO: Implement create_file
+}
 void get_file(char* name, fs_node_t* dst_buffer){
 	fs_node_t* curr = root_directory;
 	uint64_t len = strlen(name);
@@ -56,7 +59,8 @@ void get_file(char* name, fs_node_t* dst_buffer){
 			}
 		}
 	}
-	memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+	if(len == 1 && name[0] == '/') // Unless asking for root then the file isn't found
+		memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
 	return;
 }
 void set_root_directory(fs_node_t* root){

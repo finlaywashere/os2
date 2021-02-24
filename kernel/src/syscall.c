@@ -104,6 +104,25 @@ void syscall(registers_t* regs){
 			asm volatile("sti");
 			return;
 		}
+	}else if(regs->rax == 6){
+		// Fopen
+		uint64_t buffer = regs->rbx;
+		char* name = (char*) buffer;
+		uint64_t len = strlen(name);
+		uint64_t mode = regs->rcx;
+		
+		if(usermode_buffer_safety(name,len)){
+            regs->rax = 0;
+            asm volatile("sti");
+            return;
+        }
+		
+		uint64_t descriptor = open_file_descriptor(name,mode);
+		
+		regs->rax = descriptor;
+		
+		asm volatile("sti");
+		return;
 	}
 }
 

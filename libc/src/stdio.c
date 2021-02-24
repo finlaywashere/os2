@@ -17,8 +17,12 @@ int fflush(FILE* file){
 	return 0;
 }
 FILE* fopen(const char* filename, const char* mode){
-	//TODO: Implement fopen
-	return 0;
+	uint64_t mode_int = 0;
+	if(mode == "w+" || mode == "w")
+			mode_int |= 1;
+	FILE* ret = (FILE*) malloc(sizeof(FILE));
+	ret->id = syscall(6,(uint64_t) filename, mode_int, 0, 0, 0);
+	return ret;
 }
 int fprintf(FILE* file, const char* str, ...){
 	va_list vl;

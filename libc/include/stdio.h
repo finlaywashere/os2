@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <syscall.h>
+#include <stdlib.h>
 #define SEEK_SET 0
 struct file{
 	uint64_t id;

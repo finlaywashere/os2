@@ -9,6 +9,7 @@
 #include <mem/vmm.h>
 #include <utils.h>
 #include <log.h>
+#include <fs/fs.h>
 
 #define PROCESS_DEAD 0
 #define PROCESS_RUNNING 1
@@ -19,8 +20,11 @@
 
 #define MAX_PROCESS_COUNT 20
 #define MAX_DESCRIPTOR_COUNT 20
+#define MAX_FILE_COUNT 50
 #define STACK_SIZE 16384
 #define BUFFER_SIZE 512
+
+#define MODE_WRITE 1
 
 struct descriptor{
 	uint8_t flags;
@@ -57,5 +61,6 @@ process_t* get_process();
 uint8_t configure_descriptors(uint64_t pid, uint64_t parent);
 uint64_t fork_process(uint64_t parent, registers_t* regs);
 uint64_t get_curr_process();
+uint64_t open_file_descriptor(char* name, uint64_t mode);
 
 #endif

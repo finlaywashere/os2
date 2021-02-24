@@ -5,9 +5,13 @@ uint64_t curr_process = 0;
 
 process_t* processes;
 
+fs_node_t* files;
+
 void init_processes(){
-	processes = (process_t*) kmalloc_p(sizeof(process_t)*MAX_PROCESS_COUNT); // Max of # of processes
+	processes = (process_t*) kmalloc_p(sizeof(process_t)*MAX_PROCESS_COUNT); // Max of MAX_PROCESS_COUNT of processes
+	files = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*MAX_FILE_COUNT); // Max MAX_FILE_COUNT of open files
 }
+
 process_t* get_process(){
 	return &processes[curr_process];
 }
@@ -35,20 +39,44 @@ void schedule(registers_t* regs){
 	memcpy(&processes[curr_process].regs,regs,sizeof(registers_t));
 	set_page_directory(processes[curr_process].page_table);
 }
+uint64_t read_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
+	if(descriptor == 0)
+        return 0;
+	uint64_t offset = descriptor->buffer_seek;
+	
+	fs_node_t* file = &files[descriptor->id]; // Grab file from the descriptor's internal id
+	file->read_file(file,offset,size,buffer);
+	
+	return size;
+}
+uint64_t write_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
+	if(descriptor == 0)
+        return 0;
+	uint64_t offset = descriptor->buffer_seek;
+
+    fs_node_t* file = &files[descriptor->id]; // Grab file from the descriptor's internal id
+    file->write_file(file,offset,size,buffer);
+    
+	return size;
+}
 uint64_t read(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
-        uint64_t seek = descriptor->buffer_seek;
-        uint8_t* src_buffer = (uint8_t*) (((uint64_t) descriptor->buffer) + seek);
-        uint64_t src_size = descriptor->buffer_size;
-        if(seek >= size)
-                return 0;
-        uint64_t count = src_size - seek;
-        if(count > size)
-                count = size;
-        descriptor->buffer_seek = seek+count;
-        memcpy(src_buffer,buffer,count);
+	if(descriptor == 0)
+		return 0;
+	uint64_t seek = descriptor->buffer_seek;
+	uint8_t* src_buffer = (uint8_t*) (((uint64_t) descriptor->buffer) + seek);
+	uint64_t src_size = descriptor->buffer_size;
+	if(seek >= size)
+		return 0;
+	uint64_t count = src_size - seek;
+	if(count > size)
+		count = size;
+	descriptor->buffer_seek = seek+count;
+	memcpy(src_buffer,buffer,count);
 	return count;
 }
 uint64_t write(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
+	if(descriptor == 0)
+        return 0;
 	uint64_t dst_seek = descriptor->buffer_seek;
 	uint8_t* dst_buffer = (uint8_t*) (((uint64_t) descriptor->buffer) + dst_seek);
 	uint64_t dst_size = descriptor->buffer_size;
@@ -98,6 +126,44 @@ uint8_t configure_descriptors(uint64_t pid, uint64_t parent){
 		processes[parent].descriptors[parent_descriptor_slot+1].id = pid << 32 | 1;
 	}
 	return 0;
+}
+uint64_t open_file_descriptor(char* name, uint64_t mode){
+	uint64_t desc_slot = 0;
+	for(uint64_t i = 0; i < MAX_DESCRIPTOR_COUNT; i++){
+		if(i < processes[curr_process].count){
+			if(processes[curr_process].descriptors[i].id == 0 && processes[curr_process].descriptors[i].read == 0 && processes[curr_process].descriptors[i].write == 0){
+				desc_slot = i;
+				break;
+			}
+		}else{
+			desc_slot = i;
+			processes[curr_process].count++;
+			break;
+		}
+	}
+	if(desc_slot == 0)
+		return 0;
+	uint64_t file_slot = 0;
+	for(uint64_t i = 1; i < MAX_FILE_COUNT; i++){
+		if(files[i].name[0] == 0){
+			file_slot = i;
+			break;
+		}
+	}
+	if(file_slot == 0)
+		return 0;
+	if(!(mode & MODE_WRITE)){
+		get_file(name,&files[file_slot]); // Read file into file slot
+		if(files[file_slot].name[0] == 0)
+			return 0; // File not found
+	}else{
+		create_file(name,&files[file_slot]);
+	}
+	
+	processes[curr_process].descriptors[desc_slot].id = file_slot;
+	processes[curr_process].descriptors[desc_slot].read = &read_file;
+	processes[curr_process].descriptors[desc_slot].write = &write_file;
+	return desc_slot;
 }
 uint64_t find_slot(){
 	uint64_t slot = 0;

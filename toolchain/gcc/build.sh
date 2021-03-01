@@ -1,9 +1,12 @@
 #!/bin/bash
+set -e
+
 gcc=gcc-10.2.0
 makeflags=-j16
 prefix=/usr/local/
 sysroot=$(realpath ../../sysroot)
 path=$(pwd)
+autoconf=/usr/local/bin/autoconf
 
 cd ../../
 make install-headers
@@ -15,7 +18,7 @@ tar -xvf ${gcc}.tar.xz
 
 patch -p0 -i gcc.patch
 cd $gcc/libstdc++-v3/
-/usr/local/bin/autoconf
+$($autoconf)
 cd ../../
 mkdir -p build
 cd build

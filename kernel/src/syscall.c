@@ -16,7 +16,12 @@ void syscall_write(registers_t* regs){
 		regs->rax = -2;
 		return;
 	}
-	uint64_t actual_count = process->descriptors[descriptor].write(&process->descriptors[descriptor],buffer,count);
+	descriptor_t* desc = &process->descriptors[descriptor];
+	if(desc->write == 0){
+		regs->rax = -3;
+		return;
+	}
+	uint64_t actual_count = desc->write(&process->descriptors[descriptor],buffer,count);
 	regs->rax = actual_count;
 }
 void syscall_read(registers_t* regs){
@@ -33,7 +38,12 @@ void syscall_read(registers_t* regs){
 		regs->rax = -2;
 		return;
 	}
-	uint64_t actual_count = process->descriptors[descriptor].read(&process->descriptors[descriptor],buffer,count);
+	descriptor_t* desc = &process->descriptors[descriptor];
+	if(desc->read == 0){
+		regs->rax = -3;
+		return;
+	}
+	uint64_t actual_count = desc->read(&process->descriptors[descriptor],buffer,count);
 	regs->rax = actual_count;
 }
 void syscall_fork(registers_t* regs){
@@ -155,8 +165,62 @@ void syscall_ftell(registers_t* regs){
 
 	return;
 }
-void syscall_fclose(registers_t* regs){}
-void syscall_exit(registers_t* regs){}
+void syscall_fclose(registers_t* regs){
+	uint64_t id = regs->rbx;
+	if(value_safety(id, 0, get_process()->count)){
+		regs->rax = -1;
+		return;
+    }
+	close_file_descriptor(id);
+}
+void syscall_exit(registers_t* regs){
+	kill_process(get_curr_process());
+	schedule(regs);
+}
+void syscall_uname(registers_t* regs){
+	uint64_t buffer = regs->rbx;
+	char* name = (char*) buffer;
+	uint64_t len = strlen(KERNEL_NAME);
+	if(usermode_buffer_safety(name,len)){
+		regs->rax = 0;
+		return;
+	}
+	strcpy(KERNEL_NAME,name);
+	regs->rax = 1;
+}
+void syscall_sysinfo(registers_t* regs){}
+void syscall_rmdir(registers_t* regs){}
+void syscall_rename(registers_t* regs){}
+void syscall_readdir(registers_t* regs){}
+void syscall_readlink(registers_t* regs){}
+void syscall_mkdir(registers_t* regs){}
+void syscall_mknod(registers_t* regs){}
+void syscall_link(registers_t* regs){}
+void syscall_kill(registers_t* regs){
+	if(value_safety(regs->rbx, 0, MAX_PROCESS_COUNT)){
+		regs->rax = -1;
+		return;
+	}
+	kill_process(regs->rbx);
+}
+void syscall_getuid(registers_t* regs){
+	regs->rbx = get_process()->uid;
+}
+void syscall_getgid(registers_t* regs){
+	regs->rbx = get_process()->gid;
+}
+void syscall_getpid(registers_t* regs){
+	regs->rbx = get_curr_process();
+}
+void syscall_setuid(registers_t* regs){
+	get_process()->uid = regs->rbx;
+}
+void syscall_setgid(registers_t* regs){
+	get_process()->gid = regs->rbx;
+}
+void syscall_chroot(registers_t* regs){}
+void syscall_chdir(registers_t* regs){}
+void syscall_unlink(registers_t* regs){}
 
 void syscall(registers_t* regs){
 	asm volatile("cli");
@@ -184,5 +248,23 @@ void init_syscalls(){
 	register_syscall(8,&syscall_ftell);
 	register_syscall(9,&syscall_fclose);
 	register_syscall(10,&syscall_exit);
+	register_syscall(11,&syscall_uname);
+	register_syscall(12,&syscall_sysinfo);
+	register_syscall(13,&syscall_rmdir);
+	register_syscall(14,&syscall_rename);
+	register_syscall(15,&syscall_readdir);
+	register_syscall(16,&syscall_readlink);
+	register_syscall(17,&syscall_mkdir);
+	register_syscall(18,&syscall_mknod);
+	register_syscall(19,&syscall_link);
+	register_syscall(20,&syscall_kill);
+	register_syscall(21,&syscall_getuid);
+	register_syscall(22,&syscall_getgid);
+	register_syscall(23,&syscall_getpid);
+	register_syscall(24,&syscall_setuid);
+	register_syscall(25,&syscall_setgid);
+	register_syscall(26,&syscall_chroot);
+	register_syscall(27,&syscall_chdir);
+	register_syscall(28,&syscall_unlink);
 	isr_register_handler(80, &syscall);
 }

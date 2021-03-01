@@ -5,6 +5,11 @@ void memcpy(uint8_t* src, uint8_t* dst, uint64_t count){
 		dst[i] = src[i];
 	}
 }
+void strcpy(char* src, char* dst){
+	uint64_t len = strlen(src);
+	for(uint64_t i = 0; i < len; i++)
+		dst[i] = src[i];
+}
 uint64_t strlen(char* str){
 	uint64_t len = 0;
 	while(1){

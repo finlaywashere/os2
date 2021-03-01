@@ -8,6 +8,8 @@
 #include <process.h>
 #include <safety.h>
 #include <fs/fs.h>
+#include <kernel.h>
+
 
 #define PROT_EXEC 1
 #define PROT_READ 2

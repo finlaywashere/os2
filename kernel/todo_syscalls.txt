@@ -1,37 +1,17 @@
 V1 syscalls
 
 wait
-unlink
-uname
-sysinfo
 socketcall (Once networking is written)
 signal
 sigaction
 setuid
 setup
-setgid
-rmdir
-rename
 reboot
-readdir
-readlink
 pipe
 ptrace
 pause
 mount
-mkdir
-mknod
-link
-kill
-getuid
-getpid
-setgid
-getuid
-getgid
-exit
 dup
-chroot
-chdir
 chmod
 chown
 

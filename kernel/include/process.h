@@ -68,4 +68,5 @@ uint64_t get_curr_process();
 uint64_t open_file_descriptor(char* name, uint64_t mode);
 descriptor_t* get_descriptor(uint64_t id);
 fs_node_t* get_descriptor_file(uint64_t id);
+void close_file_descriptor(uint64_t id);
 #endif

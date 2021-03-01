@@ -140,6 +140,11 @@ uint8_t configure_descriptors(uint64_t pid, uint64_t parent){
 	}
 	return 0;
 }
+void close_file_descriptor(uint64_t id){
+	processes[curr_process].descriptors[id].id = 0;
+	processes[curr_process].descriptors[id].read = 0;
+	processes[curr_process].descriptors[id].write = 0;
+}
 uint64_t open_file_descriptor(char* name, uint64_t mode){
 	uint64_t desc_slot = 0;
 	for(uint64_t i = 0; i < MAX_DESCRIPTOR_COUNT; i++){

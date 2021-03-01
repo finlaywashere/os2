@@ -10,6 +10,7 @@ int memcmp(uint8_t* mem1, uint8_t* mem2, uint64_t count);
 void memset(uint8_t* buf, uint8_t val, uint64_t count);
 int numlen(uint64_t num, uint64_t base);
 void int_to_str(char* buffer, uint64_t number, uint64_t base);
+void strcpy(char* src, char* dst);
 
 // IO stuff
 

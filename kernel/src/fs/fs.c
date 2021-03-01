@@ -66,3 +66,6 @@ void get_file(char* name, fs_node_t* dst_buffer){
 void set_root_directory(fs_node_t* root){
 	root_directory = root;
 }
+fs_node_t* get_root_directory(){
+	return root_directory;
+}

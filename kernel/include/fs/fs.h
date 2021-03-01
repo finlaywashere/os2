@@ -29,4 +29,6 @@ void init_filesystems();
 void get_file(char* name, fs_node_t* dst_buffer);
 void set_root_directory(fs_node_t* root);
 void create_file(char* name,fs_node_t* file);
+fs_node_t* get_root_directory();
 #endif
+

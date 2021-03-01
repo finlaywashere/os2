@@ -278,6 +278,10 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 	}
 	
     processes[slot].page_table = loaded_data;
+	processes[slot].root_directory = get_root_directory();
+	processes[slot].current_directory = processes[slot].root_directory;
+	processes[slot].uid = 0;
+	processes[slot].gid = 0;
 	processes[slot].regs.userrsp = vaddr+0x200000; // Set stack pointer, note that stack grows down
     processes[slot].regs.rip = entry;
     processes[slot].regs.cs = 0x1b;

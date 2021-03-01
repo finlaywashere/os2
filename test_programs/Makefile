@@ -16,6 +16,8 @@ OBJS = src/test.o \
 src/test2.o \
 src/test_c.o
 
+DATA_FILES = data/test.txt
+
 LINK_LIST=\
 $(LDFLAGS) \
 $(OBJS) \
@@ -32,8 +34,12 @@ testprograms: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@
 .asm.o:
 	$(AS) $(AFLAGS) $^ -o $@
+.txt:
 iso:
 	$(FFS2UTILS) mkfs $(OUTPUT) 64
+	for file in $(DATA_FILES) ; do \
+        $(FFS2UTILS) copyfile $(OUTPUT) $$file $$(basename $$file) ; \
+    done
 	for file in $(OBJS) ; do \
 		$(FFS2UTILS) copyfile $(OUTPUT) $$file $$(basename $$file) ; \
 	done

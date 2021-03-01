@@ -16,6 +16,9 @@
 
 #define MAP_ANONYMOUS 1
 
+typedef void (*syscall_t)(registers_t*);
+
 void init_syscalls();
+void register_syscall(uint64_t id, syscall_t handler);
 
 #endif

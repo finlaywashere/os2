@@ -45,6 +45,10 @@ struct process{
 	uint16_t status;
 	uint64_t parent;
 	uint64_t count;
+	fs_node_t* root_directory;
+	fs_node_t* current_directory;
+	uint64_t uid;
+	uint64_t gid;
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
 };
 

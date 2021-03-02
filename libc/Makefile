@@ -18,7 +18,9 @@ src/stdio.o \
 src/string.o \
 src/stdio.o \
 src/stdlib.o \
-src/unistd.o
+src/unistd.o \
+src/sys/utsname.o \
+src/signal.o
 
 LINK_LIST=\
 $(LDFLAGS) \

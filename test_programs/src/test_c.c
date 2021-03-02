@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/utsname.h>
 
 int main(){
 	printf("Test1234");
@@ -14,5 +15,8 @@ int main(){
 	fseek(desc,5,SEEK_SET);
 	char* test2 = "hel";
 	fwrite(test2,1,3,desc);
+	struct utsname *name = (struct utsname*) malloc(sizeof(struct utsname));
+	uname(name);
+	printf(name->sysname);
 	while(1);
 }

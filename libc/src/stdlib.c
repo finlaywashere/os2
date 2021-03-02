@@ -4,7 +4,7 @@ void mmap(void* addr,size_t len,int prot,int flags,int fd,int offset){
 	syscall(5,(uint64_t) addr, len, ((uint64_t) prot) | (((uint64_t) flags) << 32),fd,offset);
 }
 void abort(){
-	//TODO: Implement abort
+	syscall(10,-1,0,0,0,0);
 }
 void (*termination_function)(void);
 int atexit(void (*func)(void)){
@@ -34,5 +34,5 @@ void* malloc(size_t size){
 }
 void exit(int code){
 	termination_function();
-	//TODO: Implement exit with error code
+	syscall(10,code,0,0,0,0);
 }

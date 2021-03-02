@@ -9,6 +9,11 @@ int execv(const char*, char* const[]);
 int execve(const char*, char* const[], char* const[]);
 int execvp(const char*, char* const[]);
 pid_t fork(void);
+uid_t getuid(void);
+gid_t getgid(void);
+pid_t getpid(void);
+int setuid(uid_t);
+int setgid(gid_t);
 #ifdef __cplusplus
 }
 #endif

@@ -9,6 +9,7 @@ void strcpy(char* src, char* dst){
 	uint64_t len = strlen(src);
 	for(uint64_t i = 0; i < len; i++)
 		dst[i] = src[i];
+	dst[len] = 0;
 }
 uint64_t strlen(char* str){
 	uint64_t len = 0;

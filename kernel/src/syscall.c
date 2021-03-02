@@ -174,6 +174,7 @@ void syscall_fclose(registers_t* regs){
 	close_file_descriptor(id);
 }
 void syscall_exit(registers_t* regs){
+	get_process()->regs.rax = regs->rbx;
 	kill_process(get_curr_process());
 	schedule(regs);
 }
@@ -204,13 +205,13 @@ void syscall_kill(registers_t* regs){
 	kill_process(regs->rbx);
 }
 void syscall_getuid(registers_t* regs){
-	regs->rbx = get_process()->uid;
+	regs->rax = get_process()->uid;
 }
 void syscall_getgid(registers_t* regs){
-	regs->rbx = get_process()->gid;
+	regs->rax = get_process()->gid;
 }
 void syscall_getpid(registers_t* regs){
-	regs->rbx = get_curr_process();
+	regs->rax = get_curr_process();
 }
 void syscall_setuid(registers_t* regs){
 	get_process()->uid = regs->rbx;

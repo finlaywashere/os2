@@ -13,3 +13,21 @@ int execvp(const char* file, char* const argv[]){
 pid_t fork(){
 	return (pid_t) syscall(3,0,0,0,0,0); // Fork syscall, returns child pid (or 0 if child) in rax
 }
+uid_t getuid(){
+	return syscall(21,0,0,0,0,0);
+}
+gid_t getgid(){
+	return syscall(22,0,0,0,0,0);
+}
+pid_t getpid(){
+	return syscall(23,0,0,0,0,0);
+}
+int setuid(uid_t uid){
+	syscall(24,uid,0,0,0,0);
+	return 0;
+}
+int setgid(gid_t gid){
+	syscall(25,gid,0,0,0,0);
+	return 0;
+}
+

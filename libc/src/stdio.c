@@ -8,7 +8,7 @@ size_t fwrite(const void* buffer, size_t element_size, size_t num_elements, FILE
 	return (size_t) (result/element_size);
 }
 int fclose(FILE* file){
-	//TODO: Implement fclose
+	syscall(9,file->id,0,0,0,0);
 	return 0;
 }
 int fflush(FILE* file){

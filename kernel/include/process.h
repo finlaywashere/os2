@@ -10,6 +10,7 @@
 #include <utils.h>
 #include <log.h>
 #include <fs/fs.h>
+#include <arch/x86_64/driver/keyboard.h>
 
 #define PROCESS_DEAD 0
 #define PROCESS_RUNNING 1

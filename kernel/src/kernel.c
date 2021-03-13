@@ -9,6 +9,8 @@ void kernel_start(){
 	log_debug("Initialized GDT!\n");
 	init_idt();
 	log_debug("Initialized IDT!\n");
+	init_keyboard();
+    log_debug("Initialized keyboard!\n");
 	init_timers();
 	log_debug("Initialized timers!\n");
 	init_acpi();

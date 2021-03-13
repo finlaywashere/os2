@@ -18,5 +18,11 @@ int main(){
 	struct utsname *name = (struct utsname*) malloc(sizeof(struct utsname));
 	uname(name);
 	printf(name->sysname);
+	while(1){
+		char buffer[1];
+		fread(&buffer,1,1,stdin);
+		if(buffer[0] != 0x0)
+			fwrite(&buffer,1,1,stdout);
+	}
 	while(1);
 }

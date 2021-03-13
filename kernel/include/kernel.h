@@ -16,6 +16,7 @@
 #include <elf.h>
 #include <process.h>
 #include <syscall.h>
+#include <arch/x86_64/driver/keyboard.h>
 
 #define KERNEL_NAME "FOS2 V1.0"
 

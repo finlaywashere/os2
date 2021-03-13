@@ -107,12 +107,15 @@ uint64_t write_screen(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	return size;
 }
 uint64_t read_keyboard(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
-	//TODO: Implement this
-	return 0;
+	for(uint64_t i = 0; i < size; i++){
+		buffer[i] = read_ps2_keyboard();
+	}
+	return size;
 }
 uint8_t configure_descriptors(uint64_t pid, uint64_t parent){
 	if(parent == 0){
 		processes[pid].descriptors[0].write = &write_screen;
+		processes[pid].descriptors[1].read = &read_keyboard;
 	}else{
 		uint64_t parent_descriptor_slot = 0;
 		for(uint64_t i = 2; i < processes[parent].count; i++){

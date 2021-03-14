@@ -158,6 +158,8 @@ uint8_t scancode_to_key(uint8_t scancode){
 			return '.';
 		case 0x35:
 			return '/';
+		case 0x39:
+			return ' ';
 	}
 	return 0;
 }

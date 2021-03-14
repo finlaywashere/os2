@@ -93,7 +93,7 @@ void print_pci_info(){
 				pci_function_t func = pci->busses[bus].devices[device].functions[function];
 				if(func.class_code == 0xFF || func.class_code == 0x0)
 					continue;
-				log_debug("Found PCI device, 0x");
+						log_debug("Found PCI device, 0x");
 		                uint64_t len = numlen(func.class_code,16);
         		        char* buf = (char*) kmalloc_p(len);
         		        int_to_str(buf,func.class_code,16);
@@ -123,15 +123,16 @@ void print_pci_info(){
 void init_pci(){
 	pci = (pci_t*) kmalloc_p(sizeof(pci_t));
 	check_bus(0);
+	print_pci_info();
 }
 pci_function_t* get_function_by_class(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if){
 	// If any values are -1 then don't check them
 	for(int bus = 0; bus < 256; bus++){
-                for(int device = 0; device < 32; device++){
-                        for(int function = 0; function < 8; function++){
-                                pci_function_t* func = &pci->busses[bus].devices[device].functions[function];
+		for(int device = 0; device < 32; device++){
+			for(int function = 0; function < 8; function++){
+				pci_function_t* func = &pci->busses[bus].devices[device].functions[function];
 				if(func->class_code == 0xFF || func->class_code == 0)
-                                        continue;
+					continue;
 				if(func->class_code == class_code || class_code == -1){
 					if(func->subclass_code == subclass_code || subclass_code == -1){
 						if(func->prog_if == prog_if || prog_if == -1)

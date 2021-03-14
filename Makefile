@@ -2,7 +2,12 @@ NAME = OS2
 
 QEMU = qemu-system-x86_64
 
-QEMUFLAGS = --no-reboot -no-shutdown -drive file=disk.iso,id=drive0,if=ide -drive file=ffs.iso,id=drive1,if=ide
+QEMUFLAGS = --no-reboot \
+-no-shutdown \
+-drive file=disk.iso,id=drive0,if=ide \
+-drive file=ffs.iso,id=drive1,if=ide \
+-enable-kvm \
+-vga virtio
 
 build: install-headers
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link

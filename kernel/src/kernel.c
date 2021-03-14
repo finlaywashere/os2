@@ -17,6 +17,8 @@ void kernel_start(){
 	log_debug("Initialized ACPI!\n");
 	init_pci();
 	log_debug("Initialized PCI!\n");
+	init_usb();
+	log_debug("Initialized USB!\n");
 	init_disks();
 	log_debug("Initialized disks!\n");
 	init_filesystems();

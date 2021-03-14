@@ -7,7 +7,10 @@ QEMUFLAGS = --no-reboot \
 -drive file=disk.iso,id=drive0,if=ide \
 -drive file=ffs.iso,id=drive1,if=ide \
 -enable-kvm \
--vga virtio
+-vga virtio \
+-usb \
+-device usb-mouse \
+-device usb-kbd
 
 build: install-headers
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link

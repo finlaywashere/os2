@@ -1,24 +1,8 @@
 #include <kernel.h>
 
 void kernel_start(){
-	init_paging();
-	init_kmalloc();
-	init_ttys(1);
-	log_debug("Initialized core kernel!\n");
-	init_gdt();
-	log_debug("Initialized GDT!\n");
-	init_idt();
-	log_debug("Initialized IDT!\n");
-	init_keyboard();
-    log_debug("Initialized keyboard!\n");
-	init_timers();
-	log_debug("Initialized timers!\n");
-	init_acpi();
-	log_debug("Initialized ACPI!\n");
-	init_pci();
-	log_debug("Initialized PCI!\n");
-	init_disks();
-	log_debug("Initialized disks!\n");
+	init_arch();
+	log_debug("Initialized x86_64 drivers!\n");
 	init_filesystems();
 	log_debug("Initialized filesystems!\n");
 	init_syscalls();

@@ -123,7 +123,7 @@ void print_pci_info(){
 void init_pci(){
 	pci = (pci_t*) kmalloc_p(sizeof(pci_t));
 	check_bus(0);
-	print_pci_info();
+	//print_pci_info();
 }
 pci_function_t* get_function_by_class(uint8_t class_code, uint8_t subclass_code, uint8_t prog_if){
 	// If any values are -1 then don't check them

@@ -43,9 +43,6 @@ void init_acpi(){
 			log_error("Found invalid ACPI table, name: ");
 			panicl(table->sig,4);
 		}
-		log_verb("Found ACPI table ");
-		log_verbl(table->sig,4);
-		log_verb("\n");
 	}
 }
 int acpi_checksum(acpi_header_t* header){

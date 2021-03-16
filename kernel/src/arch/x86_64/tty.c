@@ -1,8 +1,11 @@
 #include <arch/x86_64/tty.h>
+#include <font.h>
 
-const int VGA_WIDTH = 320;
-const int VGA_HEIGHT = 200;
-const int VGA_PIXELS = VGA_WIDTH*VGA_HEIGHT;
+const int VGA_WIDTH = 640/8;
+const int VGA_HEIGHT = 480/8;
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
+const int VGA_PIXELS = 640*480;
 
 const uint64_t raw_buffer = 0xFFFFFF80000A0000;
 
@@ -25,18 +28,25 @@ void init_tty(int number){
 		ttys[number].buffer = (uint16_t*) kmalloc_p(sizeof(uint16_t)*VGA_PIXELS);
 	else
 		ttys[number].buffer = (uint16_t*) raw_buffer;
+	for(int x = 0; x < 320; x++){
+		for(int y = 0; y < 240; y++){
+			ttys[0].buffer[y*320+x] = 1 | (1 << 4);
+		}
+	}
 }
 void tty_draw_pixel(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour){
-	int index = row * VGA_WIDTH + col;
-	ttys[tty].buffer[index] = colour;
+	int index = row * SCREEN_WIDTH + col;
+	ttys[tty].buffer[index] = 1; //colour;
 }
 void set_tty(uint64_t tty){
 	active_tty = tty;
 }
 void tty_putchar_raw(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character){
-	int index = row * VGA_WIDTH + col;
-	ttys[tty].buffer[index] = ((uint16_t)character) | (colour << 8);
-	
+	for(int x = 0; x < 8; x++){
+		for(int y = 0; y < 8; y++){
+			tty_draw_pixel(tty,row+y,col+x,font[character][x*8+y]);
+		}
+	}
 }
 void tty_putchar(uint64_t tty, char character){
 	if(character == '\n'){

@@ -116,7 +116,7 @@ void syscall_fopen(registers_t* regs){
 }
 void syscall_fseek(registers_t* regs){
 	uint64_t id = regs->rbx;
-	uint64_t offset = regs->rcx;
+	signed long offset = regs->rcx;
 	uint64_t from = regs->rdx;
 	process_t* process = get_process();
 	
@@ -142,12 +142,15 @@ void syscall_fseek(registers_t* regs){
 		return;
 	}
 
-	if(actual_offset >= desc->buffer_size){
+	if((actual_offset >= desc->buffer_size || actual_offset < 0) && id != 0){
 		regs->rax = -1;
 		return;
 	}
 
 	desc->buffer_seek = actual_offset;
+	
+	if(id == 0)
+		tty_update_cursor(0, desc->buffer_seek);
 
 	return;
 }

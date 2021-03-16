@@ -20,6 +20,7 @@ struct fs_node{
 	uint64_t (*dir_entries) (struct fs_node *file);
 	uint8_t (*write_file) (struct fs_node *file, uint64_t offset, uint64_t count, uint8_t* buffer);
 	uint8_t (*write_dir) (struct fs_node *file, uint64_t offset, uint64_t count, struct fs_node* buffer);
+	uint8_t (*create_file) (struct fs_node* dir, char* name, uint16_t flags, uint16_t type);
 };
 typedef struct fs_node fs_node_t;
 
@@ -28,7 +29,8 @@ typedef struct fs_node fs_node_t;
 void init_filesystems();
 void get_file(char* name, fs_node_t* dst_buffer);
 void set_root_directory(fs_node_t* root);
-void create_file(char* name,fs_node_t* file);
+uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir);
+uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir);
 fs_node_t* get_root_directory();
 #endif
 

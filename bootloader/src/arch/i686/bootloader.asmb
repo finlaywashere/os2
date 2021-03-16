@@ -5,6 +5,10 @@ section .text
 
 global _start
 _start:
+	mov ax, 0x4F02
+	mov bx, 13
+	int 0x10 ; Set VESA video mode to 13h
+
 	mov esp, 0x7000 ; Set stack to be below our code so we've got a bit of space to store data from the BIOS
 	push 0x6000
 	push 0

@@ -27,7 +27,7 @@ uint64_t ffs_dir_entries(fs_node_t* file){
 		return 0;
 	return file->length/sizeof(ffs_entry_t);
 }
-void ffs_mkdir(fs_node_t* dir, char* name){
+uint8_t ffs_create_file(fs_node_t* dir, char* name, uint16_t flags, uint16_t type){
 	uint8_t fs_index = (uint8_t) (dir->inode >> 56); // Grab disk number from file inode
 	uint64_t sector = 0;
 	for(uint64_t j = 0; j < ffs[fs_index].parameters.first_data_sector-ffs[fs_index].parameters.chain_start_sector; j++){
@@ -41,10 +41,12 @@ void ffs_mkdir(fs_node_t* dir, char* name){
 		}
 	}
 	if(sector == 0){
-		panic("Disk full!");
+		return 1;
 	}
 	write_chain_entries(fs_index);
 	fs_node_t* entry = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	entry->flags = flags;
+	entry->type = type;
 	uint64_t len = strlen(name);
 	memcpy(name,entry->name,len);
 	entry->inode = (((uint64_t)((uint8_t)(dir->inode >> 56))) << 56) | sector; // Set disk number and start sector as inode
@@ -91,6 +93,7 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 		buffer[i].read_dir = &ffs_read_dir;
 		buffer[i].dir_entries = &ffs_dir_entries;
 		buffer[i].write_dir = &ffs_write_dir;
+		buffer[i].create_file = &ffs_create_file;
 		buffer[i].parent = dir;
 	}
 	kfree_p(entries,sizeof(ffs_entry_t)*entry_count);
@@ -213,5 +216,6 @@ void init_ffs(){
 	root->dir_entries = &ffs_dir_entries;
 	root->write_dir = &ffs_write_dir;
 	root->length = entry.length;
+	root->create_file = &ffs_create_file;
 	set_root_directory(root);
 }

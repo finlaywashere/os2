@@ -1,10 +1,10 @@
 #include <arch/x86_64/tty.h>
 
-const int VGA_WIDTH = 80;
-const int VGA_HEIGHT = 25;
+const int VGA_WIDTH = 320;
+const int VGA_HEIGHT = 200;
 const int VGA_PIXELS = VGA_WIDTH*VGA_HEIGHT;
 
-const uint64_t raw_buffer = 0xFFFFFF80000B8000;
+const uint64_t raw_buffer = 0xFFFFFF80000A0000;
 
 uint64_t active_tty = 0;
 
@@ -26,12 +26,17 @@ void init_tty(int number){
 	else
 		ttys[number].buffer = (uint16_t*) raw_buffer;
 }
+void tty_draw_pixel(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour){
+	int index = row * VGA_WIDTH + col;
+	ttys[tty].buffer[index] = colour;
+}
 void set_tty(uint64_t tty){
 	active_tty = tty;
 }
 void tty_putchar_raw(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character){
 	int index = row * VGA_WIDTH + col;
 	ttys[tty].buffer[index] = ((uint16_t)character) | (colour << 8);
+	
 }
 void tty_putchar(uint64_t tty, char character){
 	if(character == '\n'){
@@ -55,9 +60,28 @@ void tty_putchars(uint64_t tty, char* characters, uint64_t count){
 		tty_putchar(tty,c);
 	}
 }
+uint64_t tty_putchars_raw(uint64_t tty, char* characters, uint64_t count, uint64_t seek){
+	ttys[tty].row = seek / VGA_WIDTH % VGA_HEIGHT;
+	ttys[tty].col = seek % VGA_WIDTH;
+    for(uint64_t i = 0; i < count; i++){
+        char c = characters[i];
+        tty_putchar(tty,c);
+    }
+	return ttys[tty].row * VGA_WIDTH + ttys[tty].col;
+}
+
 void tty_writestring(uint64_t tty, char* str){
 	uint64_t len = strlen(str);
 	tty_putchars(tty,str,len);
+}
+void tty_update_cursor(uint64_t tty, uint64_t seek){
+	ttys[tty].row = seek / VGA_WIDTH % VGA_HEIGHT;
+	ttys[tty].col = seek % VGA_WIDTH;
+	uint16_t pos = ttys[tty].row * VGA_WIDTH + ttys[tty].col;
+	outb(0x3D4, 0x0F);
+	outb(0x3D5, (uint8_t) (pos & 0xFF));
+	outb(0x3D4, 0x0E);
+	outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
 }
 /*
 Copy's a TTY to another TTY

@@ -70,9 +70,7 @@ uint16_t ps2_identify(uint8_t device){
     }
 	return response2;
 }
-uint8_t scancode_to_key(uint8_t scancode){
-    if(scancode > 0x67)
-        return 0;
+uint8_t scancode_to_key(uint16_t scancode){
 	if(scancode >= 2 && scancode <= 0x0A)
 		return scancode - 2 + '1';
 	switch(scancode){
@@ -161,21 +159,28 @@ uint8_t scancode_to_key(uint8_t scancode){
 		case 0x39:
 			return ' ';
 	}
+	if((scancode & 0xFF) == 0xE0){
+		switch(scancode >> 8){
+			case 0x48: // Up arrow
+				return 0x2;
+			case 0x50: // Down arrow
+				return 0x3;
+			case 0x4D: // Right arrow
+				return 0x4;
+			case 0x4B: // Left arrow
+				return 0x5;
+		}
+	}
 	return 0;
 }
 
 void keyboard_callback(registers_t* regs){
-	uint8_t scan = inb(DATA_PORT);
+	uint16_t scan = inb(DATA_PORT);
+	if(scan == 0xE0)
+		scan |= inb(DATA_PORT) << 8;
 	uint8_t key = scancode_to_key(scan);
 	if(key == 0)
 		return;
-	if(key == 1){
-		if(keyboard_offset == 0)
-			return;
-		// Backspace
-		keyboard_buffer[keyboard_offset-1] = 0;
-		keyboard_offset--;
-	}
 	keyboard_buffer[keyboard_offset] = key;
 	keyboard_offset++;
 }

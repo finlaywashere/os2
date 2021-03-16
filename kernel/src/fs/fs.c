@@ -5,8 +5,13 @@ fs_node_t* root_directory;
 void init_filesystems(){
 	init_ffs();
 }
-void create_file(char* name,fs_node_t* file){
-	//TODO: Implement create_file
+uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir){
+	return create_file(name,flags,0,dir);
+}
+uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir){
+	if(dir->type != 0)
+		return 1;
+	return dir->create_file(dir,name,flags,type);
 }
 void get_file(char* name, fs_node_t* dst_buffer){
 	fs_node_t* curr = root_directory;

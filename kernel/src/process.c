@@ -103,7 +103,9 @@ uint64_t write(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	return count;
 }
 uint64_t write_screen(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
-	tty_putchars(0, (char*) buffer, size);
+	uint64_t new_seek = tty_putchars_raw(0, (char*) buffer, size,descriptor->buffer_seek);
+	tty_update_cursor(0,descriptor->buffer_seek+1);
+	descriptor->buffer_seek = new_seek;
 	return size;
 }
 uint64_t read_keyboard(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
@@ -178,7 +180,7 @@ uint64_t open_file_descriptor(char* name, uint64_t mode){
 		if(files[file_slot].name[0] == 0)
 			return 0; // File not found
 	}else{
-		create_file(name,&files[file_slot]);
+		create_file(name,0,1,&files[file_slot]);
 	}
 	
 	processes[curr_process].descriptors[desc_slot].id = file_slot;

@@ -28,7 +28,7 @@ struct tty{
 	uint16_t row;
 	uint16_t col;
 	uint8_t colour;
-	uint16_t* buffer;
+	uint8_t* buffer;
 };
 typedef struct tty tty_t;
 
@@ -43,5 +43,7 @@ void tty_putchars(uint64_t tty, char* characters, uint64_t count);
 void tty_writestring(uint64_t tty, char* str);
 void tty_setcolour(uint64_t tty, uint8_t foreground, uint8_t background);
 uint8_t tty_getcolour(uint64_t tty);
+uint64_t tty_putchars_raw(uint64_t tty, char* buffer, uint64_t count, uint64_t seek);
+void tty_update_cursor(uint64_t tty, uint64_t seek);
 
 #endif

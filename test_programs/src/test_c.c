@@ -1,28 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/utsname.h>
 
 int main(){
-	printf("Test1234");
-	char* test = (char*) malloc(64);
-	FILE* desc = fopen("test.txt","r");
-	if(desc->id == 0){
-		printf("Error: Could not find test.txt!");
-		while(1);
+	char buf[1];
+	buf[0] = 0x0;
+	for(uint64_t i = 0; i < 80*25; i++){
+		fwrite(&buf,1,1,stdout);
 	}
-	size_t count = fread(test,1,64,desc);
-	printf(test);
-	fseek(desc,5,SEEK_SET);
-	char* test2 = "hel";
-	fwrite(test2,1,3,desc);
-	struct utsname *name = (struct utsname*) malloc(sizeof(struct utsname));
-	uname(name);
-	printf(name->sysname);
 	while(1){
 		char buffer[1];
 		fread(&buffer,1,1,stdin);
-		if(buffer[0] != 0x0)
+		if(buffer[0] > 0x10){
 			fwrite(&buffer,1,1,stdout);
+		}else if(buffer[0] == 0x1){
+			fseek(stdout,-1,SEEK_CUR);
+			fwrite(" ",1,1,stdout);
+			fseek(stdout,-1,SEEK_CUR);
+		}else if(buffer[0] == 0x2){
+			fseek(stdout,-80,SEEK_CUR);
+		}else if(buffer[0] == 0x3){
+			fseek(stdout,80,SEEK_CUR);
+		}else if(buffer[0] == 0x4){
+			fseek(stdout,1,SEEK_CUR);
+		}else if(buffer[0] == 0x5){
+			fseek(stdout,-1,SEEK_CUR);
+		}
 	}
 	while(1);
 }

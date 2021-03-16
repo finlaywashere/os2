@@ -28,7 +28,7 @@ struct tty{
 	uint16_t row;
 	uint16_t col;
 	uint8_t colour;
-	uint8_t* buffer;
+	uint16_t* buffer;
 };
 typedef struct tty tty_t;
 

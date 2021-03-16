@@ -5,5 +5,4 @@ void init_drivers(){
     init_timers();
     init_pci();
     init_disks();
-	init_vga();
 }

@@ -1,10 +1,10 @@
 #include <arch/x86_64/tty.h>
 
-const int VGA_WIDTH = 320;
-const int VGA_HEIGHT = 200;
+const int VGA_WIDTH = 80;
+const int VGA_HEIGHT = 25;
 const int VGA_PIXELS = VGA_WIDTH*VGA_HEIGHT;
 
-const uint64_t raw_buffer = 0xFFFFFF80000A0000;
+const uint64_t raw_buffer = 0xFFFFFF80000B8000;
 
 uint64_t active_tty = 0;
 
@@ -25,10 +25,6 @@ void init_tty(int number){
 		ttys[number].buffer = (uint16_t*) kmalloc_p(sizeof(uint16_t)*VGA_PIXELS);
 	else
 		ttys[number].buffer = (uint16_t*) raw_buffer;
-}
-void tty_draw_pixel(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour){
-	int index = row * VGA_WIDTH + col;
-	ttys[tty].buffer[index] = colour;
 }
 void set_tty(uint64_t tty){
 	active_tty = tty;

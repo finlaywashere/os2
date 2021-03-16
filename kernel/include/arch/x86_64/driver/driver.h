@@ -9,7 +9,6 @@
 #include <arch/x86_64/driver/disk/disk.h>
 #include <arch/x86_64/driver/timer/timer.h>
 #include <arch/x86_64/driver/disk/ide.h>
-#include <arch/x86_64/driver/video/vga.h>
 
 void init_drivers();
 

@@ -22,23 +22,40 @@ uint64_t get_curr_process(){
 }
 void schedule(registers_t* regs){
 	if(curr_max_process == 0)
-		return;
+		return; // There are no processes to be scheduled
+	// Save the registers from the current interrupt to the current process' state
 	memcpy(regs,&processes[curr_process].regs,sizeof(registers_t));
+	// Mark the current process as no longer running
 	processes[curr_process].status = PROCESS_READY;
+	// Go to the next process
 	curr_process++;
+	// We may need to loop through all the processes to find the next one
+	// so, the looped variable marks whether or not we have already hit the
+	// max process and gone back around. This prevents infinite loops
 	int looped = 0;
+	// Loop until we find a process thats ready to execute
 	while(processes[curr_process].status != PROCESS_READY){
+		// Increment the current pid, the loop will exit when we find a valid one
 		curr_process++;
+		// If the current pid is above the max then loop back around to 1 (as 0 is the kernel process)
 		if(curr_process >= MAX_PROCESS_COUNT && looped == 0){
 			curr_process = 1;
+			// Set looped so that this if will never execute again during this interrupt
+			looped = 1;
 		}else if(curr_process >= MAX_PROCESS_COUNT){
+			// No processes are available so switch to the kernel process
 			curr_process = 0;
 			break;
 		}
 	}
+	// Now the current PID is the one that will be running after the interrupt
+	// Mark the current PID as running
 	processes[curr_process].status = PROCESS_RUNNING;
+	// Set the rsp for ring 0 in the TSS as this process' shadow stack to prevent stack collisions in the kernel
 	tss_set_rsp(processes[curr_process].shadow_stack);
+	// Copy the new process' saved state to the registers that will be set before executing the new process
 	memcpy(&processes[curr_process].regs,regs,sizeof(registers_t));
+	// Change the page directory to the one where the new process is mapped
 	set_page_directory(processes[curr_process].page_table);
 }
 uint64_t read_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){

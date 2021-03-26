@@ -1,14 +1,17 @@
 ENTRY(_start)
 
 SECTIONS{
-        . = 0x9000;
-        .text : {
-                *(.text)
-        }
+	/*
+		Code starts at 0x9000 where the stage 1 loader loaded it
+	*/
+	. = 0x9000;
+	.text : {
+		*(.text)
+	}
 	.rodata : {
-                *(.rodata)
-        }
-
-        _stage2_end = .;
+		*(.rodata)
+	}
+	
+	_stage2_end = .;
 }
 

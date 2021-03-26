@@ -1,174 +1,198 @@
 bits 16
 
-org 0x7C00
+org 0x7C00 ; BIOS loads the bootloader at 0x7C00
 section .text
 
 global _start
 _start:
-	mov ax, 0x4F02
-	mov bx, 03
-	int 0x10 ; Set VESA video mode to 3h
+	mov ax, 0x4F02 ; Upper 8 bits are for VESA BIOS extension function, lower 8 bits are VESA function number
+				   ; Sets the function that will be called when int 0x10 is triggered to set the video mode
+	mov bx, 03 ; Video mode 0x3h which is text mode
+	int 0x10 ; Set VESA video mode
 
 	mov esp, 0x7000 ; Set stack to be below our code so we've got a bit of space to store data from the BIOS
-	push 0x6000
-	push 0
+	push 0x6000 ; Push location of BIOS memory map to stack
+	push 0 ; Push more data to make it 32 bit aligned
 	push 0
 	push 0
 	
 	mov di, 0x6020 ; Memory map location
 	mov ebx, 0 ; Clear ebx
-	mov edx, 0x534D4150 ; Magic number
+	mov edx, 0x534D4150 ; Magic number, spells "SMAP" in ASCII
 .memmap:
-	mov eax, 0xE820
-        mov ecx, 24
-        int 0x15 ; Call BIOS for memory map
-	add di, 24
-	mov eax, [0x6000]
-	inc eax
-	mov [0x6000], eax
-	cmp ebx, 0
-	jne .memmap
+	mov eax, 0xE820 ; AH E3h AL 20h asks the BIOS for the system's memory map
+	mov ecx, 24 ; Ask for 24 bytes of data from the BIOS, reset after bios call
+	int 0x15 ; Call BIOS for memory map
+	add di, 24 ; Increase the pointer to where the memory map is stored by the length of 1 entry
+	mov eax, [0x6000] ; Read the data stored at 0x6000 (the memory map entry count)
+					  ; Memory is used for this as it must be passed to the OS, stack count be used too but
+					  ; I've opted for this as the OS needs to know where the memory map is anyways
+	inc eax ; Increment number of entries
+	mov [0x6000], eax ; Write the memory map count to 0x6000
+	cmp ebx, 0 ; When ebx is 0 then we've reached the end of the memory map
+	jne .memmap ; EBX is not 0 so loop back around to .memmap
 	
 	; End of memory map code
 	
 	; Setup page tables now to save trouble later
-	mov edx, 0x8000
-        mov ebx, 0x3003
-        mov [edx], ebx ; Map p3 in p4 table
-	mov edx, 0x3000
-	mov ebx, 0x4003
-	mov [edx], ebx ; Map p2 in p3 table
-	mov edx, 0x4000
-	mov ebx, 0x5003
-	mov [edx], ebx ; Map p1 in p2 table
-	mov ecx, 1
+	; These are long mode 4 level page tables
+	mov edx, 0x8000 ; Page directory (P4) table is at 0x8000
+	mov ebx, 0x3003 ; Page table (P3) address is 0x3000 and flags are 0x3 (present, writable)
+	mov [edx], ebx ; Map P3 in P4 table
+	mov edx, 0x3000 ; P3 table is at 0x3000 so move it to edx to prepare to write to it
+	mov ebx, 0x4003 ; Page table (P2) address is 0x4000 and flags are 0x3 (present, writable)
+	mov [edx], ebx ; Map P2 in P3 table
+	mov edx, 0x4000 ; P2 table is at 0x4000 so move it to edx to prepare to write to it
+	mov ebx, 0x5003 ; P1 table is at 0x5000 and its flags are 0x3 (present, writable)
+	mov [edx], ebx ; Map P1 in P2 table
+
+	mov ecx, 0 ; Counter for identity paging, starts at 0 and ends at 512
 .loop:
-	mov eax, 0x1000 ; 4KiB
-	mul ecx
-	or eax,0b11
-	mov [0x5000 + ecx*8], eax ; map entry
-	inc ecx
-	cmp ecx, 512
-	jne .loop
+	mov eax, 0x1000 ; 4KiB page size
+	mul ecx ; Multiply the page size by the counter to get the current physical and virtual address to be mapped
+	or eax,0b11 ; Or the address by 0x3 for present and writeable
+	mov [0x5000 + ecx*8], eax ; Map the entry in the P1 table
+	inc ecx ; Increment the counter
+	cmp ecx, 512 ; If we've reached the 512th entry then exit the loop
+	jne .loop ; If not continue
 	
-	; Load kernel from disk now so we can use the BIOS
+	; Load 2nd stage and kernel from disk now so we can use the BIOS
 	mov ah, 0x42 ; LBA Read command
 	mov dl, 0x80 ; Use default drive
-	mov si, disk_packet ; Set packet location
-	int 0x13 ; Call BIOS
+	mov si, disk_packet ; Set packet location to the packet structure at the end of this file
+	int 0x13 ; Call BIOS function
 		
 	cli ; Disable interrupts
-	; Quickly set A20
-	in al, 0x92
-	or al, 2
-	out 0x92, al
+
+	; Quickly set A20 gate
+	in al, 0x92 ; Read from system control port A
+	or al, 2 ; Set bit 1
+	out 0x92, al ; Write data back to system control port A
 	
 	; Load GDT
-	xor eax, eax
-	mov ax, ds
-	shl eax, 4
-	add eax, GDT
-	mov [gdtr + 2], eax
+	mov eax, GDT ; Move the address of the GDT table to eax
+				 ; Simpler than trying to manually calculate it beforehand as its 2 instructions
+	mov [gdtr + 2], eax ; Set the address of the GDT table in the GDT description structure
 	
-	lgdt [gdtr]
+	lgdt [gdtr] ; Load the GDT
 	
 	; Enter protected mode
-	mov eax, cr0
-	or al, 1
-	mov cr0, eax
+	mov eax, cr0 ; Read cr0 to eax
+	or al, 1 ; Set bit protected mode bit in CR0
+	mov cr0, eax ; Write eax back to cr0
 	
-	jmp 08h:protectedMode
+	jmp 08h:protectedMode ; Long jump to protected mode code in segment 0x8
 bits 32
 protectedMode:
-	mov ecx, 0x8000
-	mov cr3, ecx
-		
+	; We're now in 32 bit mode
+	mov ecx, 0x8000 ; Move P4 table address to ecx
+	mov cr3, ecx ; Write contents of ecx to cr3 (as writing 0x8000 can't be done directly)
+	
 	; Enable PAE
-        mov eax, cr4 ; Copy CR4 to eax
-        or eax, 100000b ; Enable the PAE bit
-        mov cr4, eax ; Move changes to CR4
+	mov eax, cr4 ; Copy CR4 to eax
+	or eax, 100000b ; Enable the PAE bit
+	mov cr4, eax ; Move changes to CR4
 	
 	; Set long mode bit in MSR
-        mov ecx, 0xC0000080
-        rdmsr
-        or eax, 1 << 8
-        wrmsr
+	mov ecx, 0xC0000080 ; Set ecx to the MSR number (0xC0000080)
+	rdmsr ; Read from MSR
+	or eax, 1 << 8 ; Set long mode enable bit 
+	wrmsr ; Write MSR
 	
 	; Enable paging
-	mov eax, cr0
-	or eax, 0x80000000
-	mov cr0, eax
+	mov eax, cr0 ; Copy cr0 to eax
+	or eax, 1 << 31 ; Set paging enable bit
+	mov cr0, eax ; Write eax back to cr0 with the paging bit set
 	
 	; Load long mode GDT
-        xor eax, eax
-        mov ax, ds
-        shl eax, 4
-        add eax, GDT2
-        mov [gdtr2 + 2], eax
-        lgdt [gdtr2]
+	mov eax, GDT2 ; Put long mode GDT address in eax
+				  ; Same reasoning as above for not having this be static
+	mov [gdtr2 + 2], eax ; Set long mode GDT address in the GDT description structure
+
+	lgdt [gdtr2] ; Load the 64 bit GDT
 	
-	jmp 08h:longMode
+	jmp 08h:longMode ; Long jump to long mode code in segment 0x8
 bits 64
 longMode:
-	mov rax, 0x10
-	mov ds, rax
+	mov rax, 0x10 ; Move the kernel data segment number to rax
+	mov ds, rax ; Copy rax to all the segment registers to prepare environment for 2nd stage and kernel
 	mov ss, rax
 	mov es, rax
 	mov fs, rax
 	mov gs, rax
-	jmp 0x9000
+	jmp 0x9000 ; Jump to where the 2nd stage was loaded
 section .rodata
-gdtr:
-	dw 0x17
-	dd 0
-GDT:
-	dq 0 ; null segment
+gdtr: ; The descriptor structure for the 32 bit GDT
+	dw 0x17 ; The number of bytes in the GDT - 1
+	dd 0 ; The address of the GDT, programmatically filled in later
+		 ; Note that this data is in the .rodata section, however the actual memory this occupies is not read only
+
+GDT: ; The 32 bit GDT
+	dq 0 ; Null segment, 8 bytes long
 	
+	; Kernel code segment
+	; Limit is just set to maximum and base is set to 0
+	; Access is set to present, ring 0, code, and executable
+	; Flags are page granularity and the size bit (32 bit code)
+
+	dw 0xFFFF ; Code limit 
+	dw 0 ; Code base low
+	db 0 ; Code base mid
+	db 10011000b ; Code access
+	db 11001111b ; Code flags (4 bits) and upper limit (4 bits)
+	db 0 ; Code base high
+	
+	; Kernel data segment
+	; Limit and base are the same as code segment
+	; Access is set to present, ring 0, and writable
+	; Flags are page granularity
+
+	dw 0xFFFF ; Data limit
+	dw 0 ; Data base low
+	db 0 ; Data base mid
+	db 10010010b ; Data access
+	db 10001111b ; Data flags (4 bits) and upper limit (4 bits)
+	db 0 ; Data base high
+GDT_end:
+gdtr2: ; The descriptor structure for the 64 bit GDT
+	dw 0x17 ; The number of bytes in the GDT - 1
+	dd 0 ; Address of the GDT, programmatically filled in later, same as in gdtr above
+
+GDT2: ; The 64 bit GDT
+	dq 0 ; Null segment, 8 bytes long
+
+	; 64 bit kernel code segment
+	; Exact same as the 32 bit GDT but instead of the size bit (32 bit code) the 64 bit code bit is set
+
 	dw 0xFFFF ; Code limit
 	dw 0 ; Code base low
 	db 0 ; Code base mid
 	db 10011000b ; Code access
-	db 11001111b ; Code flags
+	db 10101111b ; Code flags (4 bits) and upper limit (4 bits)
 	db 0 ; Code base high
+	
+	; 64 bit kernel data segment
+	; Identical to 32 bit kernel data segment
 
 	dw 0xFFFF ; Data limit
-        dw 0 ; Data base low
-        db 0 ; Data base mid
-        db 10010010b ; Data access
-        db 10001111b ; Data flags
-        db 0 ; Data base high
-GDT_end:
-gdtr2:
-        dw 0x17
-        dd 0
-GDT2:
-        dq 0 ; null segment
-
-        dw 0xFFFF ; Code limit
-        dw 0 ; Code base low
-        db 0 ; Code base mid
-        db 10011000b ; Code access
-        db 10101111b ; Code flags
-        db 0 ; Code base high
-
-        dw 0xFFFF ; Data limit
-        dw 0 ; Data base low
-        db 0 ; Data base mid
-        db 10010010b ; Data access
-        db 10001111b ; Data flags
-        db 0 ; Data base high
+	dw 0 ; Data base low
+	db 0 ; Data base mid
+	db 10010010b ; Data access
+	db 10001111b ; Data flags
+	db 0 ; Data base high
 
 GDT2_end:
 align 32 ; Packet must be on 4 byte boundary
-disk_packet:
-	db 16 ; Size of packet
-	db 0 ; Zero
-	dw 127 ; Number of sectors, some BIOS's might restrict to being 127
-	dw 0x9000 ; Buffer offset
-	dw 0 ; Buffer segment
-	dd 1 ; Lower 32 bits of starting LBA
-	dd 0 ; Upper 32 bits of starting LBA
-boot_header:
-	resb 110
-	db 0x55
+disk_packet: ; The packet sent to the BIOS to read the 2nd stage and kernel from the disk
+	db 16 ; Size of packet (16 bytes)
+	db 0 ; This byte must be 0
+	dw 127 ; Number of sectors, some BIOS's restrict to being 127 so it is 127
+	dw 0x9000 ; The data should be loaded starting at 0x9000
+	dw 0 ; The data segment is 0 because it doesn't matter
+	dd 1 ; Lower 32 bits of starting LBA, start at sector 1 because sector 0 is already in memory (at 0x7C00)
+	dd 0 ; Upper 32 bits of starting LBA, not used
+
+boot_header: ; The BIOS looks for a signature at the end of the boot sector in order to boot
+	resb 142 ; Reserve all the bytes left in the sector - 2 for the signature
+	db 0x55 ; Write signature at the end of the data section (must be after code section)
 	db 0xAA

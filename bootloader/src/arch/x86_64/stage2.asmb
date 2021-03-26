@@ -1,23 +1,27 @@
-bits 64
-org 0x9000
+bits 64 ; Already in 64 bit mode thanks to stage 1
+org 0x9000 ; We start at 0x9000
 _start:
 	; Clear the screen
 	mov rax, 0xB8000 ; Video memory
-	mov rbx, 0
+	mov rbx, 0 ; Clear rbx to use as counter
 .loop:
-	mov byte [rax], 0x0
-	add rax, 2
-	inc ebx
-        cmp ebx, 4800
-        jne .loop
+	mov byte [rax], 0x0 ; Set the byte at rax to 0, clears whatever character is there
+	add rax, 2 ; Increment rax by 2 bytes as each entry is a byte for colour and a byte for character,
+			   ; colour is not cleared
+	inc rbx ; Increment the counter
+	cmp rbx, 25*80 ; Check if all characters on the 80x25 screen are cleared
+	jne .loop ; If they haven't keep going
 	
 	; Parse ELF stuff
-	mov rax, [0xd000]
-	cmp al, 0x7F
+	mov rax, [0xd000] ; 0xd000 is where the kernel ELF file starts in memory
+					  ; It leaves 32 sectors between the stage 2 loader and kernel
+					  ; This is unecessarily large but it may be used in the future or narrowed
+	cmp al, 0x7F ; rax is the value at 0xd000 so check ah and al for the ELF magic numbers
+				 ; These magic numbers are 0x75 0x45 0x4C 0x46
+	jne $ ; If they're wrong then just lock up, this never should be triggered
+	cmp ah, 0x45 ; Same thing as above
 	jne $
-	cmp ah, 0x45
-	jne $
-	mov rax, [0xd002]
+	mov rax, [0xd002] ; Advance to the next 2 bytes in the kernel ELF file to read the rest of the magic number
 	cmp al, 0x4C
 	jne $
 	cmp ah, 0x46
@@ -25,12 +29,13 @@ _start:
 	
 	; The kernel was successfully loaded!
 
-	mov r13, 0x8000+511*8 ; P4 start
-	mov r11, 0x1003
-	mov [r13], r11
-	mov r11, 0x1000+510*8 ; P3 table
-	mov r12, 0xa003
-	mov [r11], r12 ; Map p2 table
+	mov r13, 0x8000+511*8 ; Move the P4 entry we are targetting (the last one) to r13
+	mov r11, 0x1003 ; Map it to a P3 table at 0x1000 with flags 0x3 (present, writable)
+	mov [r13], r11 ; Write the entry
+	mov r11, 0x1000+510*8 ; P3 table is at 0x1000, the entry we are looking for is entry 511
+	mov r12, 0xa003 ; P2 table is at 0xa000 with flags 0x3 (present, writable)
+					; Note that this will overlap with the stage 2 bootloader if it becomes > 2 sectors
+	mov [r11], r12 ; Map p2 table entry
 	
 	mov rcx, [0xd000+24] ; Put program entry point in rcx
 	mov rbx, [0xd000+32] ; Put program header table position in rbx
@@ -41,54 +46,51 @@ _start:
 	mov rdx, 0 ; Set counter to 0
 	
 .paging:
-	mov rax, 0x200000 ; 2MiB
-	push rdx
-	mul rdx
-	pop rdx
-	or rax, 0b10000011
-	mov [0x2000+rdx*8], rax
-	add rax, 0x200000 ; Add physical offset of 2MiB
-	mov [0xa000+rdx*8], rax
-	inc rdx
-	cmp rdx, 512
-	jne .paging
-	
-	mov r11, 0x3000 ; P2 table ; Replace old 4KiB pages with 2MiB pages
-        mov r12, 0x2003
-        mov [r11], r12 ; Map p1 table
+	mov rax, 0x200000 ; 2MiB pages
+	push rdx ; Push counter so it won't be messed with by the mul instruction
+	mul rdx ; Multiple page size by page number
+	pop rdx ; Pop counter
+	or rax, 0b10000011 ; Or in the page entry bits which are present, writable, and huge
+	add rax, 0x200000 ; Add physical offset of 2MiB, so the kernel code will be loaded starting at
+					  ; 2MiB physically
+	mov [0xa000+rdx*8], rax ; Set the entry in the P2 table
+	inc rdx ; Increment the counter
+	cmp rdx, 512 ; Check if we've filled the whole table
+	jne .paging ; If not continue
 	
 	mov rdx, 0 ; Set counter to 0
 	mov rax, 0 ; Clear rax
-        mov al, [0xd000+56] ; Number of program header entries
+	mov al, [0xd000+56] ; Number of program header entries
 .loop2:
-	inc rdx
-	cmp rdx, r14
-	jge .loop2end ; Check if the counter is too high and exit
+	inc rdx ; Increment counter at the start
+	cmp rdx, r14 ; Check if the counter is greater than or equal to the number of program header entries
+	jge .loop2end ; If it is then break out of loop
 	
-	mov esi, [rbx]
+	mov esi, [rbx] ; Move segment type from program header in memory to esi
 	cmp esi, 1 ; Check if the segment type is loadable
-	jne .loop2end2
+	jne .loop2end2 ; If the segment isn't loadable then increment some registers and continue
 	
 	; It is a loadable segment
-	mov r8, [rbx+8] ; Where the data is on disk
-	add r8, 0xd000 ; Add memory offset
-	mov r9, [rbx+16] ; Where the data needs to go
+	mov r8, [rbx+8] ; Where the data is in the ELF file
+	add r8, 0xd000 ; Add memory offset of 0xd000 where the file starts
+	mov r9, [rbx+16] ; Where the data needs to go in memory
 	mov r10, [rbx+32] ; Size of the segment
 	mov r11, 0 ; Current memcpy count
 	mov dil, 0 ; Check tmp register
 .memcpy:
-	mov dil, [r8] ; Copy data to register
-	mov [r9], dil ; Copy register to memory
-	inc r8
+	mov dil, [r8] ; Copy data to register from old memory
+	mov [r9], dil ; Copy register to new memory
+	inc r8 ; Increment all the counters and memory pointers
 	inc r9
 	inc r11
-	cmp r11, r10
-	jne .memcpy
+	cmp r11, r10 ; Check how many times we've iterated
+	jne .memcpy ; If we haven't gone through all the bytes then continue
 	
-	cmp rdx, rax
-	jne .loop2end2
+	cmp rdx, rax ; Check if we've gone through all the program header entries
+	jne .loop2end2 ; If we haven't then continue
+	jmp .loop2end ; Jump past the non loadable segment code straight to the code that runs the kernel
 .loop2end2:
-	add rbx, rax
-	jmp .loop2
+	add rbx, 56 ; Add 56 bytes (size of 64 bit program header) to rbx and loop again
+	jmp .loop2 ; Continue looping
 .loop2end:
-	jmp rcx
+	jmp rcx ; Kernel start pointer is in rcx, so jump to it

@@ -64,6 +64,7 @@ link:
 clean:
 	rm -rf $(BUILDDIR)
 	rm -f $(OBJS)
+	rm -f bootloader.iso
 setup:
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(SRCDIR)

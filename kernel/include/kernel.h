@@ -11,6 +11,6 @@
 
 #define KERNEL_NAME "FOS2 V1.0"
 
-void kernel_start();
+void kernel_start(); // Starts the kernel
 
 #endif

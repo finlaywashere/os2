@@ -1,5 +1,11 @@
 #include <stdio.h>
 
+int putchar(int c){
+	char c2 = (char) c;
+	fwrite(&c2,1,1,stdout);
+	return 1;
+}
+
 int printf(const char* str, ...){
 	return fprintf(stdout,str);
 }

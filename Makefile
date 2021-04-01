@@ -6,8 +6,7 @@ QEMUFLAGS = --no-reboot \
 -no-shutdown \
 -drive file=disk.iso,id=drive0,if=ide \
 -drive file=ffs.iso,id=drive1,if=ide \
--enable-kvm \
--vga virtio
+-enable-kvm
 
 build: install-headers
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link

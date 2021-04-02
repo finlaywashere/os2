@@ -61,7 +61,7 @@ void syscall_exec(registers_t* regs){
 	process_t* process_data = get_process();
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	uint64_t entry_point = load_elf(buffer, dst);
-	create_process_pid_nodesc(process, dst, entry_point,0,0,0,0);
+	create_process_pid_nodesc(process, dst, entry_point,0,0,0,0,0);
 
 	memcpy(&process_data->regs,regs,sizeof(registers_t));
 }

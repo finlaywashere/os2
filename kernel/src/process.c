@@ -128,6 +128,8 @@ uint64_t write_screen(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 uint64_t read_keyboard(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	for(uint64_t i = 0; i < size; i++){
 		buffer[i] = read_ps2_keyboard();
+		if(buffer[i] == 0)
+			return i;
 	}
 	return size;
 }
@@ -239,27 +241,28 @@ uint64_t fork_process(uint64_t parent, registers_t* regs){
 	curr_max_process++;
 	return child;
 }
-uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc){
+uint64_t create_process(page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc, uint8_t interrupts){
 	uint64_t slot = find_slot();
 	if(slot == 0)
 		return 0;
-	create_process_pid(slot,loaded_data,entry,parent,argv,argc,envp,envc);
+	create_process_pid(slot,loaded_data,entry,parent,argv,argc,envp,envc,interrupts);
 	curr_max_process++;
 	return slot;
 }
-void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc){
+void create_process_pid(uint64_t pid, page_table_t* loaded_data, uint64_t entry, uint64_t parent, char* argv[], int argc, char* envp[], int envc, uint8_t interrupts){
 	asm volatile("cli");
 	uint64_t slot = pid;
 	
-	create_process_pid_nodesc(pid,loaded_data,entry,argv,argc,envp,envc);
+	create_process_pid_nodesc(pid,loaded_data,entry,argv,argc,envp,envc,interrupts);
 	processes[slot].parent = parent;
 
 	configure_descriptors(slot,parent);
 	
-	asm volatile("sti");
+	if(interrupts)
+		asm volatile("sti");
 	return slot;
 }
-void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t entry, char* argv[], int argc, char* envp[], int envc){
+void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t entry, char* argv[], int argc, char* envp[], int envc, uint8_t interrupts){
 	asm volatile("cli");
     uint64_t slot = pid;
 	memset(&processes[slot].regs,0,sizeof(registers_t));
@@ -325,8 +328,9 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 	
     processes[slot].status = PROCESS_READY;
     processes[slot].count = MAX_DESCRIPTOR_COUNT;
-
-    asm volatile("sti");
+	
+	if(interrupts)
+	    asm volatile("sti");
 }
 void kill_process(uint64_t code){
 	processes[code].status = PROCESS_DEAD;

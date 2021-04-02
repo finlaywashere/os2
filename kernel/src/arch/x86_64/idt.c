@@ -101,6 +101,10 @@ void isr_handler(registers_t regs){
 		log_error_num(regs.rip,16);
 		log_error("\nError code: 0x");
 		log_error_num(regs.error,16);
+		if(regs.interrupt == 0xE){ // Page fault
+			log_error("\nAccess Address: 0x");
+			log_error_num(regs.cr2,16);
+		}
 		disable_interrupts();
 		panic("\n");
 	}

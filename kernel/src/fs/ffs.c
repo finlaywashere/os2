@@ -95,6 +95,7 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 		buffer[i].write_dir = &ffs_write_dir;
 		buffer[i].create_file = &ffs_create_file;
 		buffer[i].parent = dir;
+		buffer[i].exists = 1;
 	}
 	kfree_p(entries,sizeof(ffs_entry_t)*entry_count);
 }
@@ -217,5 +218,6 @@ void init_ffs(){
 	root->write_dir = &ffs_write_dir;
 	root->length = entry.length;
 	root->create_file = &ffs_create_file;
+	root->exists = 1;
 	set_root_directory(root);
 }

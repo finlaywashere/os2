@@ -18,7 +18,7 @@ void kernel_start(){
 	// Load test_c.o from disk
 	uint64_t entry_point = load_elf("/shell.o", dst);
 	// Create a process from the loaded program
-	create_process(dst, entry_point,0,0,0,0,0);
+	create_process(dst, entry_point,0,0,0,0,0,1);
 	while(1){
 		// Infinite loop
 	}

@@ -3,6 +3,8 @@
 uint64_t load_elf(char* name, page_table_t* dst){
 	fs_node_t* file = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
 	get_file(name,file);
+	if(file->exists == 0)
+		panic("Error: Executable file not found!");
 	uint8_t* buffer = (uint8_t*) kmalloc_p(file->length);
 	file->read_file(file,0,file->length,buffer); // Read whole file to memory
 	

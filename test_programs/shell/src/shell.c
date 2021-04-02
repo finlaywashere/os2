@@ -11,8 +11,10 @@ void main(){
 			uint64_t count = fread(&buffer[index],1,1,stdin);
 			uint64_t oldindex = index;
 			index += count;
-			if(buffer[oldindex] == '\n')
+			if(buffer[oldindex] == '\n'){
+				buffer[oldindex] = 0x0;
 				break;
+			}
 			if(buffer[oldindex] > 0x10){
 				fwrite(&buffer[oldindex],1,1,stdout);
 			}else if(buffer[0] == 0x1){

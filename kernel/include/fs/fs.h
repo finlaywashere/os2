@@ -7,6 +7,7 @@
 #include <mem/vmm.h>
 
 struct fs_node{
+	uint8_t exists;
 	uint16_t flags; // File flags
 	char name[20];
 	uint16_t type; // File type, 0 = directory, 1 = file, 2 = symlink, etc

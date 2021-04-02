@@ -65,7 +65,7 @@ void get_file(char* name, fs_node_t* dst_buffer){
 		}
 	}
 	if(len == 1 && name[0] == '/') // Unless asking for root then the file isn't found
-		memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+		dst_buffer->exists = 0;
 	return;
 }
 void set_root_directory(fs_node_t* root){

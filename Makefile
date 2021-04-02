@@ -29,11 +29,7 @@ install-headers:
 	rm -rf sysroot/
 	mkdir -p sysroot/usr/include/
 	cp -r libc/include/* sysroot/usr/include/
-qemu:
+qemu: build
 	$(QEMU) $(QEMUFLAGS) -monitor stdio
-debug:
-	$(QEMU) $(QEMUFLAGS) -d int
-gdb:
-	$(QEMU) $(QEMUFLAGS) -d int -s -S
-gdbm:
+gdb: build
 	$(QEMU) $(QEMUFLAGS) -monitor stdio -s -S

@@ -16,6 +16,7 @@
 #define PROCESS_RUNNING 1
 #define PROCESS_SLEEPING 2
 #define PROCESS_READY 3
+#define PROCESS_WAITING 4
 
 #define DESCRIPTOR_PRESENT 1
 
@@ -50,6 +51,7 @@ struct process{
 	fs_node_t* current_directory;
 	uint64_t uid;
 	uint64_t gid;
+	uint64_t condition;
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
 };
 

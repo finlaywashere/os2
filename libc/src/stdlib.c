@@ -33,6 +33,7 @@ void* malloc(size_t size){
 	return (void*) curr_addr-size;
 }
 void exit(int code){
-	termination_function();
+	if(termination_function != 0)
+		termination_function();
 	syscall(10,code,0,0,0,0);
 }

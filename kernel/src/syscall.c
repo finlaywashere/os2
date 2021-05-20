@@ -178,8 +178,9 @@ void syscall_fclose(registers_t* regs){
 }
 void syscall_exit(registers_t* regs){
 	get_process()->regs.rax = regs->rbx;
-	kill_process(get_curr_process());
+	uint64_t curr = get_curr_process();
 	schedule(regs);
+	kill_process(curr);
 }
 void syscall_uname(registers_t* regs){
 	uint64_t buffer = regs->rbx;

@@ -24,7 +24,7 @@ void init_kmalloc(){
 	}
 	
 	
-	kernel_phys_end = ((uint64_t) &_kernel_end) - KERNEL_VIRT_ADDR;
+	kernel_phys_end = ((uint64_t) &_kernel_end) - KERNEL_VIRT_ADDR + 0x200000; // Add 2MiB because that is the physical offset of where the kernel is located
 	safe_alloc_start = kernel_phys_end + 0x800000; // Add 8MiB buffer after kernel for stacks/general safety
 	bitmap_count = mem_size/8192;
 	kmalloc_bitmap = (uint8_t*)(safe_alloc_start+0xffffff8000000000);
@@ -39,7 +39,8 @@ void init_kmalloc(){
 		if(max > 0)
 			max--;
 		for(uint64_t addr = entry.base/0x200000+1; addr < max; addr++){
-			kmalloc_bitmap[addr] = 1;
+			if(addr > safe_alloc)
+				kmalloc_bitmap[addr] = 1;
 		}
 	}
 }

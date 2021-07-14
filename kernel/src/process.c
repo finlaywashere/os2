@@ -274,12 +274,16 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 	// 2MiB stack for convenience
 	uint64_t stack = (uint64_t) kmalloc_pa(0x200000,0x200000);
 	uint64_t vaddr = find_first_available_page();
-	uint64_t args_kmem = (uint64_t) kmalloc_pa(0x200000,0x200000);
-	uint64_t args_page = find_first_available_page();
-	if(vaddr == -1 || args_page == -1){
+	if(vaddr == -1){
 		panic("Error: Out of memory!");
 	}
+
 	map_page(get_physical_addr(stack),vaddr,0b111); // User, write, present
+	uint64_t args_kmem = (uint64_t) kmalloc_pa(0x200000,0x200000);
+    uint64_t args_page = find_first_available_page();
+	if(args_page == -1){
+		panic("Error: Out of memory!");
+	}
 	map_page(get_physical_addr(args_kmem),args_page,0b111); // User, write, present
 	
 	set_page_directory(curr_dir);

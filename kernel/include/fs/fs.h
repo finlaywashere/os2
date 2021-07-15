@@ -25,6 +25,17 @@ struct fs_node{
 };
 typedef struct fs_node fs_node_t;
 
+struct user_fs_node{
+	uint16_t flags;
+	char name[20];
+	uint16_t type;
+	uint64_t inode;
+	uint64_t creation_time;
+	uint64_t modification_time;
+	uint64_t length; // in bytes
+}__attribute__((packed));
+typedef struct user_fs_node user_fs_node_t;
+
 #include <fs/ffs.h>
 
 void init_filesystems();

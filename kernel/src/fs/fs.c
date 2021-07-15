@@ -14,6 +14,10 @@ uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir){
 	return dir->create_file(dir,name,flags,type);
 }
 void get_file(char* name, fs_node_t* dst_buffer){
+	if(name[0] == '/' && name[1] == 0x0){
+		memcpy((uint8_t*) root_directory, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+		return;
+	}
 	fs_node_t* curr = root_directory;
 	uint64_t len = strlen(name);
 	uint64_t last_slash = 0;

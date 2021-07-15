@@ -196,7 +196,44 @@ void syscall_uname(registers_t* regs){
 void syscall_sysinfo(registers_t* regs){}
 void syscall_rmdir(registers_t* regs){}
 void syscall_rename(registers_t* regs){}
-void syscall_readdir(registers_t* regs){}
+void syscall_readdir(registers_t* regs){
+	uint64_t buffer_addr = regs->rbx;
+    uint64_t count = regs->rcx;
+    uint64_t descriptor = regs->rdx;
+    if(usermode_buffer_safety(buffer_addr,count)){
+        regs->rax = -1;
+        return;
+    }
+    uint8_t* buffer = (uint8_t*) buffer_addr;
+    process_t* process = get_process();
+    if(value_safety(descriptor, 0, process->count)){
+        regs->rax = -2;
+        return;
+    }
+	fs_node_t* file = get_descriptor_file(descriptor);
+	if(file->type != 0){
+		regs->rax = -3;
+		return;
+	}
+	uint64_t file_count = file->dir_entries(file);
+	if(count > file_count)
+		count = file_count;
+	fs_node_t* k_buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*file_count);
+	file->read_dir(file,k_buffer);
+
+	user_fs_node_t* u_buffer = (user_fs_node_t*) buffer;
+	for(int i = 0; i < count; i++){
+		fs_node_t f = k_buffer[i];
+		u_buffer[i].flags = f.flags;
+		u_buffer[i].type = f.type;
+		u_buffer[i].inode = f.inode;
+		u_buffer[i].creation_time = f.creation_time;
+		u_buffer[i].modification_time = f.modification_time;
+		u_buffer[i].length = f.length;
+		memcpy(&f.name,&u_buffer[i].name,20);
+	}
+    regs->rax = count;
+}
 void syscall_readlink(registers_t* regs){}
 void syscall_mkdir(registers_t* regs){}
 void syscall_mknod(registers_t* regs){}

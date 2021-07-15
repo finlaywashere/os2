@@ -11,6 +11,16 @@ struct file{
 	uint64_t id;
 };
 typedef struct file FILE;
+struct file_info{
+	uint16_t flags;
+	char name[20];
+	uint16_t type;
+	uint64_t inode;
+	uint64_t creation_time;
+	uint64_t modification_time;
+	uint64_t length; // in bytes
+}__attribute__((packed));
+typedef struct file_info file_info_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +44,7 @@ int vfprintf(FILE*, const char*, va_list);
 int printf(const char*, ...);
 int putchar(int);
 int puts(const char *);
+int readdir(FILE*, uint64_t, file_info_t*);
 #ifdef __cplusplus
 }
 #endif

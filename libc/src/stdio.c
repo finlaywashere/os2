@@ -5,6 +5,9 @@ int putchar(int c){
 	fwrite(&c2,1,1,stdout);
 	return 1;
 }
+int readdir(FILE* dir, uint64_t count, file_info_t* buffer){
+	return syscall(15,(uint64_t) buffer, count, dir->id,0,0);
+}
 
 int printf(const char* str, ...){
 	va_list vl;

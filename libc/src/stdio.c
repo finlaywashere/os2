@@ -7,7 +7,9 @@ int putchar(int c){
 }
 
 int printf(const char* str, ...){
-	return fprintf(stdout,str);
+	va_list vl;
+	va_start(vl,str);
+	return fprintf_backend(stdout,str,vl);
 }
 size_t fwrite(const void* buffer, size_t element_size, size_t num_elements, FILE* file){
 	uint64_t result = syscall(1,(uint64_t) buffer, (uint64_t) (element_size*num_elements), file->id,0,0);
@@ -24,17 +26,21 @@ int fflush(FILE* file){
 }
 FILE* fopen(const char* filename, const char* mode){
 	uint64_t mode_int = 0;
-	if(mode == "w+" || mode == "w")
-			mode_int |= 1;
+	if(mode[0] == 'w')
+		mode_int |= 1;
 	FILE* ret = (FILE*) malloc(sizeof(FILE));
 	ret->id = syscall(6,(uint64_t) filename, mode_int, 0, 0, 0);
 	return ret;
 }
 int fprintf(FILE* file, const char* str, ...){
 	va_list vl;
+	va_start(vl,str);
+	return fprintf_backend(file,str,vl);
+}
+
+int fprintf_backend(FILE* file, const char* str, va_list vl){
     int i = 0, j = 0;
     char buff[100]={0}, tmp[20];
-    va_start(vl, str);
     while(str && str[i]){
         if(str[i] == '%'){
             i++;
@@ -61,6 +67,11 @@ int fprintf(FILE* file, const char* str, ...){
     int result = fwrite(buff,j,1,file);
     va_end(vl);
     return result-j;
+}
+int puts(const char *str){
+	int result = fwrite(str,strlen(str),1,stdout);
+	result += fwrite("\n",1,1,stdout);
+	return result;
 }
 size_t fread(void* buffer, size_t element_size, size_t num_elements, FILE* file){
 	uint64_t result = syscall(2,(uint64_t) buffer, (uint64_t) (element_size*num_elements), file->id,0,0);

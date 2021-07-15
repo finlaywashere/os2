@@ -21,13 +21,14 @@ $(LIBS)
 
 AFLAGS = -felf64 -g -F dwarf
 CFLAGS = -g -F dwarf -mno-sse -mno-sse2 -fno-tree-vectorize
+LIBS = -lc
 
 .PHONY: shell clean setup copy
 .SUFFIXES: .o .c .asm
 shell: $(OBJS)
 
 .c.o:
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ $(LIBS)
 .asm.o:
 	$(AS) $(AFLAGS) $^ -o $@
 copy:

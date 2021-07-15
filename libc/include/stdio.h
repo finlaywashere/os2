@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <syscall.h>
 #include <stdlib.h>
+#include <string.h>
+
 #define SEEK_SET 0
 struct file{
 	uint64_t id;
@@ -31,6 +33,7 @@ void setbuf(FILE*, char*);
 int vfprintf(FILE*, const char*, va_list);
 int printf(const char*, ...);
 int putchar(int);
+int puts(const char *);
 #ifdef __cplusplus
 }
 #endif

@@ -33,6 +33,12 @@ void main(){
 			}
 		}
 		printf("\n");
+		FILE* fd = fopen(buffer,"r");
+		if(fd->id == 0){
+			printf("File not found!\n");
+			continue;
+		}
+		fclose(fd);
 		uint64_t pid = fork(); // Fork and execute new program
 		if(pid == 0){
 			execv(buffer, 0x0);

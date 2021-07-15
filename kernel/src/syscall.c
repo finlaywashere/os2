@@ -263,6 +263,15 @@ void syscall_setgid(registers_t* regs){
 void syscall_chroot(registers_t* regs){}
 void syscall_chdir(registers_t* regs){}
 void syscall_unlink(registers_t* regs){}
+void syscall_wait(registers_t* regs){
+	uint64_t pid = regs->rbx;
+	if(value_safety(pid, 0, MAX_PROCESS_COUNT)){
+        regs->rax = -1;
+        return;
+    }
+	regs->rax = 0;
+	process_wait(pid, regs);
+}
 
 void syscall(registers_t* regs){
 	asm volatile("cli");
@@ -308,5 +317,6 @@ void init_syscalls(){
 	register_syscall(26,&syscall_chroot);
 	register_syscall(27,&syscall_chdir);
 	register_syscall(28,&syscall_unlink);
+	register_syscall(29,&syscall_wait);
 	isr_register_handler(80, &syscall);
 }

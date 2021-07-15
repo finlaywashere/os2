@@ -16,6 +16,7 @@
 #define PROCESS_RUNNING 1
 #define PROCESS_SLEEPING 2
 #define PROCESS_READY 3
+#define PROCESS_WAITPID 4
 
 #define DESCRIPTOR_PRESENT 1
 
@@ -50,6 +51,7 @@ struct process{
 	fs_node_t* current_directory;
 	uint64_t uid;
 	uint64_t gid;
+	uint64_t wait_condition;
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
 };
 
@@ -70,4 +72,5 @@ uint64_t open_file_descriptor(char* name, uint64_t mode);
 descriptor_t* get_descriptor(uint64_t id);
 fs_node_t* get_descriptor_file(uint64_t id);
 void close_file_descriptor(uint64_t id);
+void process_wait(uint64_t pid, registers_t* regs);
 #endif

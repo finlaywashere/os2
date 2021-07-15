@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 void main(){
 	while(1){
@@ -42,6 +43,8 @@ void main(){
 		uint64_t pid = fork(); // Fork and execute new program
 		if(pid == 0){
 			execv(buffer, 0x0);
+		}else{
+			waitpid(pid);
 		}
 	}
 }

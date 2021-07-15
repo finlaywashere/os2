@@ -25,18 +25,29 @@ void schedule(registers_t* regs){
 		return; // There are no processes to be scheduled
 	// Save the registers from the current interrupt to the current process' state
 	memcpy(regs,&processes[curr_process].regs,sizeof(registers_t));
-	// Mark the current process as no longer running
-	processes[curr_process].status = PROCESS_READY;
+	// Mark the current process as no longer running if its not already been changed
+	if(processes[curr_process].status == PROCESS_RUNNING)
+		processes[curr_process].status = PROCESS_READY;
 	// Go to the next process
 	curr_process++;
 	// We may need to loop through all the processes to find the next one
 	// so, the looped variable marks whether or not we have already hit the
 	// max process and gone back around. This prevents infinite loops
 	int looped = 0;
+	if(processes[curr_process].status == PROCESS_WAITPID){
+		if(processes[processes[curr_process].wait_condition].status == PROCESS_DEAD){
+			processes[curr_process].status = PROCESS_READY; // If the process it is waiting for is dead then resume
+		}
+	}
 	// Loop until we find a process thats ready to execute
 	while(processes[curr_process].status != PROCESS_READY){
 		// Increment the current pid, the loop will exit when we find a valid one
 		curr_process++;
+		if(processes[curr_process].status == PROCESS_WAITPID){
+			if(processes[processes[curr_process].wait_condition].status == PROCESS_DEAD){
+				processes[curr_process].status = PROCESS_READY; // If the process it is waiting for is dead then resume
+			}
+		}
 		// If the current pid is above the max then loop back around to 1 (as 0 is the kernel process)
 		if(curr_process >= MAX_PROCESS_COUNT && looped == 0){
 			curr_process = 1;
@@ -57,6 +68,11 @@ void schedule(registers_t* regs){
 	memcpy(&processes[curr_process].regs,regs,sizeof(registers_t));
 	// Change the page directory to the one where the new process is mapped
 	set_page_directory(processes[curr_process].page_table);
+}
+void process_wait(uint64_t pid, registers_t* regs){
+	processes[curr_process].wait_condition = pid;
+	processes[curr_process].status = PROCESS_WAITPID;
+	schedule(regs);
 }
 uint64_t read_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	if(descriptor == 0)
@@ -148,7 +164,7 @@ uint8_t configure_descriptors(uint64_t pid, uint64_t parent){
 		if(parent_descriptor_slot == 0)
 			return -2;
 		// Lowest is always the child's stdout (descriptor 0 on child process)
-		processes[parent].descriptors[parent_descriptor_slot].read = &read;
+		/*processes[parent].descriptors[parent_descriptor_slot].read = &read;
 		processes[parent].descriptors[parent_descriptor_slot].id = pid << 32;
 		processes[pid].descriptors[0].buffer = (uint8_t*) kmalloc_p(BUFFER_SIZE);
 		processes[pid].descriptors[0].buffer_size = BUFFER_SIZE;
@@ -160,7 +176,9 @@ uint8_t configure_descriptors(uint64_t pid, uint64_t parent){
 		processes[parent].descriptors[parent_descriptor_slot+1].buffer = (uint8_t*) kmalloc_p(BUFFER_SIZE);
 		processes[parent].descriptors[parent_descriptor_slot+1].buffer_size = BUFFER_SIZE;
 		processes[parent].descriptors[parent_descriptor_slot+1].write = &write;
-		processes[parent].descriptors[parent_descriptor_slot+1].id = pid << 32 | 1;
+		processes[parent].descriptors[parent_descriptor_slot+1].id = pid << 32 | 1;*/
+		processes[pid].descriptors[0].write = &write_screen;
+        processes[pid].descriptors[1].read = &read_keyboard;
 	}
 	return 0;
 }

@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SEEK_SET 0
 struct file{
 	uint64_t id;
 };

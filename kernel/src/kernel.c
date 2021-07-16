@@ -17,6 +17,8 @@ void kernel_start(){
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	// Load test_c.o from disk
 	uint64_t entry_point = load_elf("/shell.o", dst);
+	tty_clear(0);
+	tty_writestring(0,"Welcome to FinlayOS\n");
 	// Create a process from the loaded program
 	create_process(dst, entry_point,0,0,0,0,0,1);
 	while(1){

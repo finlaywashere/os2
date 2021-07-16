@@ -34,6 +34,12 @@ void tty_putchar_raw(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, c
 	ttys[tty].buffer[index] = ((uint16_t)character) | (colour << 8);
 	
 }
+void tty_clear(uint64_t tty){
+	memset(ttys[tty].buffer,0,VGA_PIXELS*2); // Multiply by 2 because each pixel is a 16 bit int
+	ttys[tty].row = 0;
+	ttys[tty].col = 0;
+	ttys[tty].colour = 0xF;
+}
 void tty_putchar(uint64_t tty, char character){
 	if(character == '\n'){
 		ttys[tty].col = 0;
@@ -57,7 +63,7 @@ void tty_putchars(uint64_t tty, char* characters, uint64_t count){
 	}
 }
 uint64_t tty_putchars_raw(uint64_t tty, char* characters, uint64_t count, uint64_t seek){
-	ttys[tty].row = seek / VGA_WIDTH % VGA_HEIGHT;
+	//ttys[tty].row = seek / VGA_WIDTH % VGA_HEIGHT;
 	ttys[tty].col = seek % VGA_WIDTH;
     for(uint64_t i = 0; i < count; i++){
         char c = characters[i];
@@ -71,7 +77,7 @@ void tty_writestring(uint64_t tty, char* str){
 	tty_putchars(tty,str,len);
 }
 void tty_update_cursor(uint64_t tty, uint64_t seek){
-	ttys[tty].row = seek / VGA_WIDTH % VGA_HEIGHT;
+	//ttys[tty].row = seek / VGA_WIDTH % VGA_HEIGHT;
 	ttys[tty].col = seek % VGA_WIDTH;
 	uint16_t pos = ttys[tty].row * VGA_WIDTH + ttys[tty].col;
 	outb(0x3D4, 0x0F);

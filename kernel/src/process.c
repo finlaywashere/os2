@@ -25,6 +25,7 @@ void schedule(registers_t* regs){
 		return; // There are no processes to be scheduled
 	// Save the registers from the current interrupt to the current process' state
 	memcpy(regs,&processes[curr_process].regs,sizeof(registers_t));
+	processes[curr_process].page_table = (uint64_t) get_curr_page_directory();
 	// Mark the current process as no longer running if its not already been changed
 	if(processes[curr_process].status == PROCESS_RUNNING)
 		processes[curr_process].status = PROCESS_READY;

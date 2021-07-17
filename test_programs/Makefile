@@ -10,7 +10,7 @@ build:
 	@export NAME=$(NAME) && cd shell/ && $(MAKE) && $(MAKE) copy
 	@export NAME=$(NAME) && cd coreutils/ && $(MAKE) && $(MAKE) copy
 iso:
-	$(FFS2UTILS) mkfs $(OUTPUT) 64
+	$(FFS2UTILS) mkfs $(OUTPUT) 1024
 	for file in sysroot/* ; do \
         $(FFS2UTILS) copyfile $(OUTPUT) $$file $$(basename $$file) ; \
 		echo $$file ; \

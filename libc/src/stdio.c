@@ -67,12 +67,12 @@ int fprintf_backend(FILE* file, const char* str, va_list vl){
         }
         i++;
     }
-    int result = fwrite(buff,j,1,file);
+    int result = fwrite(buff,1,j,file);
     va_end(vl);
     return result-j;
 }
 int puts(const char *str){
-	int result = fwrite(str,strlen(str),1,stdout);
+	int result = fwrite(str,1,strlen(str),stdout);
 	result += fwrite("\n",1,1,stdout);
 	return result;
 }

@@ -142,7 +142,7 @@ void syscall_fseek(registers_t* regs){
 		return;
 	}
 
-	if((actual_offset >= desc->buffer_size || actual_offset < 0) && id != 0){
+	if((actual_offset > desc->buffer_size || actual_offset < 0) && id != 0){
 		regs->rax = -1;
 		return;
 	}

@@ -16,7 +16,9 @@ void kernel_start(){
 	// Allocate memory for a page table for the init process
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	// Load test_c.o from disk
-	uint64_t entry_point = load_elf("/shell.o", dst);
+	fs_node_t* file = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	get_file("/shell.o",file,get_root_directory());
+	uint64_t entry_point = load_elf(file, dst);
 	tty_clear(0);
 	tty_writestring(0,"Welcome to FinlayOS\n");
 	// Create a process from the loaded program

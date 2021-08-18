@@ -14,6 +14,7 @@ gid_t getgid(void);
 pid_t getpid(void);
 int setuid(uid_t);
 int setgid(gid_t);
+int chdir(const char*);
 #ifdef __cplusplus
 }
 #endif

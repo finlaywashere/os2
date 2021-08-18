@@ -39,7 +39,7 @@ typedef struct user_fs_node user_fs_node_t;
 #include <fs/ffs.h>
 
 void init_filesystems();
-void get_file(char* name, fs_node_t* dst_buffer);
+void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent);
 void set_root_directory(fs_node_t* root);
 uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir);
 uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir);

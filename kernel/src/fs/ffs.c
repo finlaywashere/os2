@@ -206,7 +206,7 @@ void init_ffs(){
 		panic("Error: No root drive found!");
 	ffs_entry_t entry = ffs[root_disk].parameters.root_directory;
 	fs_node_t *root = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
-	memcpy((uint8_t*) &entry.name, (uint8_t*) root->name, 20);
+	strcpy("/", &root->name);
 	root->flags = entry.permissions;
 	root->inode = ((uint64_t)entry.start_sector) | ((uint64_t)root_disk << 56);
 	root->creation_time = entry.creation_date;

@@ -57,6 +57,6 @@ struct elf_program_header{
 
 typedef struct elf_program_header elf_program_header_t;
 
-uint64_t load_elf(char* name, page_table_t* dst); // Loads an ELF file from disk and returns its entry point
+uint64_t load_elf(fs_node_t* file, page_table_t* dst); // Loads an ELF file from disk and returns its entry point
 
 #endif

@@ -1,8 +1,6 @@
 #include <elf.h>
 
-uint64_t load_elf(char* name, page_table_t* dst){
-	fs_node_t* file = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
-	get_file(name,file);
+uint64_t load_elf(fs_node_t* file, page_table_t* dst){
 	if(file->exists == 0)
 		panic("Error: Executable file not found!");
 	uint8_t* buffer = (uint8_t*) kmalloc_p(file->length);

@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <syscall.h>
 
 int execv(const char* file, char* const argv[]){
 	syscall(4,file,0,0,0,0); // Exec syscall
@@ -30,4 +31,6 @@ int setgid(gid_t gid){
 	syscall(25,gid,0,0,0,0);
 	return 0;
 }
-
+int chdir(const char* dir){
+	return syscall(27,dir,0,0,0,0);
+}

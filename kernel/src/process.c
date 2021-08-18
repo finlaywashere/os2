@@ -214,7 +214,7 @@ uint64_t open_file_descriptor(char* name, uint64_t mode){
 	if(file_slot == 0)
 		return 0;
 	if(!(mode & MODE_WRITE)){
-		get_file(name,&files[file_slot]); // Read file into file slot
+		get_file(name,&files[file_slot],processes[curr_process].current_directory); // Read file into file slot
 		if(files[file_slot].name[0] == 0)
 			return 0; // File not found
 	}else{

@@ -60,7 +60,9 @@ void syscall_exec(registers_t* regs){
 	uint64_t process = get_curr_process();
 	process_t* process_data = get_process();
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
-	uint64_t entry_point = load_elf(buffer, dst);
+	fs_node_t* file = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	get_file(buffer,file,process_data->current_directory);
+	uint64_t entry_point = load_elf(file, dst);
 	create_process_pid_nodesc(process, dst, entry_point,0,0,0,0,0);
 
 	memcpy(&process_data->regs,regs,sizeof(registers_t));
@@ -261,7 +263,30 @@ void syscall_setgid(registers_t* regs){
 	get_process()->gid = regs->rbx;
 }
 void syscall_chroot(registers_t* regs){}
-void syscall_chdir(registers_t* regs){}
+void syscall_chdir(registers_t* regs){
+	uint64_t buffer_addr = regs->rbx;
+    char* buffer = (char*) buffer_addr;
+    uint64_t count = strlen(buffer);
+    if(usermode_buffer_safety(buffer_addr,count)){
+        regs->rax = 0;
+        return;
+    }
+
+	process_t* process = get_process();
+
+	fs_node_t* new_dir = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	get_file(buffer, new_dir, process->current_directory);
+	if(new_dir->exists == 0){
+		regs->rax = -1;
+		return;
+	}
+	if(process->current_directory != process->root_directory){
+		kfree(process->current_directory,sizeof(fs_node_t));
+	}
+	process->current_directory = new_dir;
+	regs->rax = 1;
+	return;
+}
 void syscall_unlink(registers_t* regs){}
 void syscall_wait(registers_t* regs){
 	uint64_t pid = regs->rbx;

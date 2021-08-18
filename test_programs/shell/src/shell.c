@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <string.h>
 
 void main(){
 	while(1){
@@ -34,6 +35,10 @@ void main(){
 			}
 		}
 		printf("\n");
+		if(memcmp("cd ",buffer,3) == 0){
+			// Command is to change dir
+			uint64_t result = chdir(&buffer[3]);
+		}
 		FILE* fd = fopen(buffer,"r");
 		if(fd->id == 0){
 			printf("File not found!\n");

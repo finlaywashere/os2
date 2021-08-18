@@ -30,3 +30,33 @@ size_t strlen(const char* str){
 		len++;
 	}
 }
+int strcmp(const char* str1, const char* str2){
+	size_t len1 = strlen(str1);
+	size_t len2 = strlen(str2);
+
+	if(len1 < len2){
+		return -1;
+	}else if(len1 > len2){
+		return 1;
+	}
+	for(size_t i = 0; i < len1; i++){
+		if(str1[i] < str2[i]){
+			return -1;
+		}else if(str1[i] > str2[i]){
+			return 1;
+		}
+	}
+	return 0;
+}
+int memcmp(const void* str1, const void* str2, size_t count){
+	char* str1_c = (char*) str1;
+	char* str2_c = (char*) str2;
+	for(size_t i = 0; i < count; i++){
+        if(str1_c[i] < str2_c[i]){
+            return -1;
+        }else if(str1_c[i] > str2_c[i]){
+            return 1;
+        }
+    }
+    return 0;
+}

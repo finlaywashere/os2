@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <utils.h>
+#include <log.h>
 
 #define MEM_USABLE 1
 #define MEM_RESERVED 2

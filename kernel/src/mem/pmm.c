@@ -71,7 +71,7 @@ void* kmalloc(uint64_t size, uint64_t alignment){
 			return (void*)(i*0x1000);
 		}
 	}
-	return (void*) 0x0;
+	panic("Error: OOM");
 }
 void kfree(void* base, uint64_t size){
 	uint64_t addr = (uint64_t) base;

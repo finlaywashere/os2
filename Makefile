@@ -38,3 +38,5 @@ gdbd: build
 	$(QEMU) $(QEMUFLAGS) -d int -s -S
 fast: build
 	$(QEMU) $(QEMUFLAGS) --enable-kvm
+fastd: build
+	$(QEMU) $(QEMUFLAGS) --enable-kvm -s -S

@@ -29,6 +29,17 @@ void init_tty(int number){
 void set_tty(uint64_t tty){
 	active_tty = tty;
 }
+void tty_scroll(uint64_t tty, uint64_t rows){
+	ttys[tty].row -= rows;
+	for(int y = rows; y < VGA_HEIGHT; y++){
+		for(int x = 0; x < VGA_WIDTH; x++){
+			int index = y * VGA_WIDTH + x;
+			int new_index = (y - rows) * VGA_WIDTH + x;
+			ttys[tty].buffer[new_index] = ttys[tty].buffer[index];
+			ttys[tty].buffer[index] = 0x0;
+		}
+	}
+}
 void tty_putchar_raw(uint64_t tty, uint16_t row, uint16_t col, uint8_t colour, char character){
 	int index = row * VGA_WIDTH + col;
 	ttys[tty].buffer[index] = ((uint16_t)character) | (colour << 8);
@@ -44,6 +55,9 @@ void tty_putchar(uint64_t tty, char character){
 	if(character == '\n'){
 		ttys[tty].col = 0;
 		ttys[tty].row++;
+		if(ttys[tty].row >= VGA_HEIGHT){
+			tty_scroll(tty,1);
+		}
 		return;
 	}
 	uint16_t row = ttys[tty].row;

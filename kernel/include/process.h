@@ -53,6 +53,7 @@ struct process{
 	uint64_t gid;
 	uint64_t wait_condition;
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
+	fs_node_t files[MAX_FILE_COUNT];
 };
 
 typedef struct process process_t;

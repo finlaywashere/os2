@@ -46,4 +46,5 @@ uint8_t tty_getcolour(uint64_t tty);
 uint64_t tty_putchars_raw(uint64_t tty, char* buffer, uint64_t count, uint64_t seek);
 void tty_update_cursor(uint64_t tty, uint64_t seek);
 void tty_clear(uint64_t tty);
+void tty_scroll(uint64_t tty, uint64_t rows);
 #endif

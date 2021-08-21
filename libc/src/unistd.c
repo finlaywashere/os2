@@ -2,7 +2,7 @@
 #include <syscall.h>
 
 int execv(const char* file, char* const argv[]){
-	syscall(4,file,0,0,0,0); // Exec syscall
+	syscall(4,file,argv,0,0,0); // Exec syscall
 	return -1; // Should never reach here
 }
 int execve(const char* file, char* const argv[], char* const envp[]){

@@ -4,6 +4,14 @@ _start:
 	; Clear the screen
 	mov rax, 0xB8000 ; Video memory
 	mov rbx, 0 ; Clear rbx to use as counter
+	jmp .loop
+.error:
+	mov rax, 0xB8000
+	mov rbx, 0
+	mov bh, 0xf
+	mov bl, 'R'
+	mov [rax], rbx
+	jmp $
 .loop:
 	mov byte [rax], 0x0 ; Set the byte at rax to 0, clears whatever character is there
 	add rax, 2 ; Increment rax by 2 bytes as each entry is a byte for colour and a byte for character,
@@ -12,20 +20,26 @@ _start:
 	cmp rbx, 25*80 ; Check if all characters on the 80x25 screen are cleared
 	jne .loop ; If they haven't keep going
 	
+	mov rax, 0xB8000 ; Print B to the screen
+	mov rbx, 0
+	mov bh, 0xf
+	mov bl, 'B'
+	mov [rax], rbx
+
 	; Parse ELF stuff
 	mov rax, [0xd000] ; 0xd000 is where the kernel ELF file starts in memory
 					  ; It leaves 32 sectors between the stage 2 loader and kernel
 					  ; This is unecessarily large but it may be used in the future or narrowed
 	cmp al, 0x7F ; rax is the value at 0xd000 so check ah and al for the ELF magic numbers
 				 ; These magic numbers are 0x75 0x45 0x4C 0x46
-	jne $ ; If they're wrong then just lock up, this never should be triggered
+	jne .error ; If they're wrong then just lock up, this never should be triggered
 	cmp ah, 0x45 ; Same thing as above
-	jne $
+	jne .error
 	mov rax, [0xd002] ; Advance to the next 2 bytes in the kernel ELF file to read the rest of the magic number
 	cmp al, 0x4C
-	jne $
+	jne .error
 	cmp ah, 0x46
-	jne $
+	jne .error
 	
 	; The kernel was successfully loaded!
 

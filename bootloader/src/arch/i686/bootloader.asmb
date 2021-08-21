@@ -10,6 +10,12 @@ _start:
 	mov bx, 03 ; Video mode 0x3h which is text mode
 	int 0x10 ; Set VESA video mode
 
+	mov ah, 0x0A ; Print out a S to the screen
+    mov al, 'S'
+    mov bh, 0
+    mov cx, 1
+    int 0x10
+
 	mov esp, 0x7000 ; Set stack to be below our code so we've got a bit of space to store data from the BIOS
 	push 0x6000 ; Push location of BIOS memory map to stack
 	push 0 ; Push more data to make it 32 bit aligned
@@ -193,6 +199,6 @@ disk_packet: ; The packet sent to the BIOS to read the 2nd stage and kernel from
 	dd 0 ; Upper 32 bits of starting LBA, not used
 
 boot_header: ; The BIOS looks for a signature at the end of the boot sector in order to boot
-	resb 142 ; Reserve all the bytes left in the sector - 2 for the signature
+	resb 110 ; Reserve all the bytes left in the sector - 2 for the signature
 	db 0x55 ; Write signature at the end of the data section (must be after code section)
 	db 0xAA

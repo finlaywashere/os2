@@ -311,25 +311,30 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 	uint8_t* arg_src = (uint8_t*) argv;
 	uint8_t* env_src = (uint8_t*) envp;
 	
-	uint64_t env_start = (argc+1) * sizeof(void*);
-	uint64_t len = (argc+envc+2)*sizeof(void*);
-	
-	for(int i = 0; i < len; i++){
-		if(i < env_start-sizeof(void*)){
-			// Args
-			dst[i] = arg_src[i];
-		}else if(i >= env_start-sizeof(void*) && i < env_start){
-			// Null
-			dst[i] = 0x0;
-		}else if(i < len-sizeof(void*)){
-			// Envp
-			dst[i] = env_src[i];
-		}else{
-			// Null
-			dst[i] = 0x0;
+	char** dst_argv = (char**) dst;
+
+	uint64_t start = sizeof(char*)*argc+sizeof(char*)*envc+2;
+	if(argv != 0x0){
+		for(uint64_t i = 0; i < argc; i++){
+			char* str = argv[i];
+			uint64_t count = strlen(str);
+			memcpy(str,&dst[start],count);
+			dst_argv[i] = args_page+start;
+			start += count+1; // Leave space for null terminator
 		}
 	}
-	
+	start++;
+	uint64_t env_start = start;
+	if(envp != 0x0){
+		for(uint64_t i = 0; i < envc; i++){
+			char* str = envp[i];
+			uint64_t count = strlen(str);
+			memcpy(str,&dst[start],count);
+			dst_argv[i+env_start] = args_page+start;
+			start += count+1; // Leave space for null terminator
+		}
+	}
+
     processes[slot].page_table = loaded_data;
 	processes[slot].root_directory = get_root_directory();
 	processes[slot].current_directory = processes[slot].root_directory;

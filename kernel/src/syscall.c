@@ -57,13 +57,36 @@ void syscall_exec(registers_t* regs){
 		regs->rax = 0;
 		return;
 	}
+	uint64_t argv_addr = regs->rcx;
+	char** argv = (char**) argv_addr;
+	uint64_t argc = 0;
+	while(1){
+		argc++;
+		if(argv[argc+1] == 0x0){
+			break;
+		}
+		if(argc > 1000){
+			regs->rax = 0;
+			return;
+		}
+	}
+	if(usermode_buffer_safety(argv_addr,argc)){
+		regs->rax = 0;
+		return;
+	}
+	for(uint64_t i = 0; i < argc; i++){
+		if(usermode_buffer_safety(argv[i],strlen(argv[i]))){
+			regs->rax = 0;
+			return;
+    	}
+	}
 	uint64_t process = get_curr_process();
 	process_t* process_data = get_process();
 	page_table_t* dst = (page_table_t*) kmalloc_p(sizeof(page_table_t));
 	fs_node_t* file = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
 	get_file(buffer,file,process_data->current_directory);
 	uint64_t entry_point = load_elf(file, dst);
-	create_process_pid_nodesc(process, dst, entry_point,0,0,0,0,0);
+	create_process_pid_nodesc(process, dst, entry_point,argv,argc,0,0,0);
 
 	memcpy(&process_data->regs,regs,sizeof(registers_t));
 }

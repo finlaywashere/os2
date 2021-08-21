@@ -4,6 +4,7 @@ QEMU = qemu-system-x86_64
 
 QEMUFLAGS = --no-reboot \
 -no-shutdown \
+-m size=1024 \
 -drive file=disk.iso,id=drive0,if=ide \
 -drive file=ffs.iso,id=drive1,if=ide
 

@@ -22,7 +22,7 @@ void main(){
 			}else if(buffer[oldindex] == 0x1){
 				buffer[oldindex] = 0x0;
 				buffer[oldindex-1] = 0x0;
-				index--;
+				index -= 2;
 				fseek(stdout,-1,SEEK_CUR);
 				fwrite(" ",1,1,stdout);
 				fseek(stdout,-1,SEEK_CUR);

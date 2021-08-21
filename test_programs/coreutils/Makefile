@@ -11,7 +11,8 @@ CC = x86_64-elf-fos-gcc
 OUTPUT = ../sysroot/
 
 OBJS = src/ls.o \
-src/cat.o
+src/cat.o \
+src/error.o
 
 LINK_LIST=\
 $(LDFLAGS) \

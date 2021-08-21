@@ -27,7 +27,7 @@ void log(char* message, uint8_t foreground, uint8_t background){
 }
 
 void panicl(char* message,uint64_t len){
-	char* m2 = "Kernel Panic: ";
+	char* m2 = "\nKernel Panic: ";
 	log_errorl(m2, strlen(m2));
 	log_errorl(message, len);
 	asm volatile ("cli"); // Disable interrupts

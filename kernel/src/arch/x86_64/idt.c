@@ -1,4 +1,5 @@
 #include <arch/x86_64/idt.h>
+#include <process.h>
 
 idt_t* idt;
 
@@ -95,9 +96,11 @@ void isr_handler(registers_t regs){
 	}
 	outb(0x20,0x20); // EOI
 	if(regs.interrupt < 32){
-		log_error("Received error 0x");
+		log_error("\nReceived error 0x");
 		log_error_num(regs.interrupt, 16);
-		log_error("!\nPC: 0x");
+		log_error("!\nProcess: ");
+		log_error_num(get_curr_process(),10);
+		log_error("\nPC: 0x");
 		log_error_num(regs.rip,16);
 		log_error("\nError code: 0x");
 		log_error_num(regs.error,16);
@@ -106,7 +109,7 @@ void isr_handler(registers_t regs){
 			log_error_num(regs.cr2,16);
 		}
 		disable_interrupts();
-		panic("\n");
+		panic("Error Occurred");
 	}
 	if(regs.interrupt >= 32 && interrupt_handlers[regs.interrupt] != 0){
 		isr_t handler = interrupt_handlers[regs.interrupt];

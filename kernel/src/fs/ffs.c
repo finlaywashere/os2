@@ -6,14 +6,16 @@ uint8_t root_disk;
 
 void ffs_update_file(fs_node_t* file){
 	fs_node_t* parent = file->parent;
-	uint64_t num_entries = parent->dir_entries(parent);
-	fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t) * num_entries);
-	parent->read_dir(parent,buffer);
-	for(uint64_t i = 0; i < num_entries; i++){
-		if(strcmp(&file->name,&buffer[i].name)){
-			// Found entry
-			uint64_t offset = i * sizeof(fs_node_t);
-			parent->write_dir(parent,offset,1,file);
+	if(parent != 0){
+		uint64_t num_entries = parent->dir_entries(parent);
+		fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t) * num_entries);
+		parent->read_dir(parent,buffer);
+		for(uint64_t i = 0; i < num_entries; i++){
+			if(strcmp(&file->name,&buffer[i].name)){
+				// Found entry
+				uint64_t offset = i * sizeof(fs_node_t);
+				parent->write_dir(parent,offset,1,file);
+			}
 		}
 	}
 }
@@ -53,7 +55,7 @@ uint8_t ffs_create_file(fs_node_t* dir, char* name, uint16_t flags, uint16_t typ
 	uint64_t entries = dir->dir_entries(dir);
 	dir->write_dir(dir,entries*sizeof(ffs_entry_t),sizeof(ffs_entry_t), entry);
 }
-void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
+uint8_t ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	uint64_t first_sector = file->inode & 0x00FFFFFFFFFFFFFF;
 	uint64_t offset_sector_index = offset/512;
 	uint64_t length_sectors = length/512 + (length % 512 > 0 ? 1 : 0);
@@ -76,7 +78,7 @@ void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* b
 	kfree_p(tmp_buffer,tmp_length);
 }
 
-void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
+uint8_t ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 	uint64_t entry_count = (dir->length/sizeof(ffs_entry_t));
 	ffs_entry_t* entries = (ffs_entry_t*) kmalloc_p(sizeof(ffs_entry_t)*entry_count);
 	ffs_read_file(dir,0,dir->length, (uint8_t*) entries);
@@ -100,7 +102,7 @@ void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 	kfree_p(entries,sizeof(ffs_entry_t)*entry_count);
 }
 
-void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
+uint8_t ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	uint64_t file_length = file->length/512 + (file->length % 512 > 0 ? 1 : 0);
 	uint8_t* new_buffer = (uint8_t*) kmalloc_p(file_length*512);
 	memcpy(buffer,new_buffer,length);
@@ -167,7 +169,7 @@ void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* 
 		}
 	}
 }
-void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t count, fs_node_t* buffer){
+uint8_t ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t count, fs_node_t* buffer){
 	uint64_t num_entries = count;
 	uint64_t actual_size = num_entries*sizeof(ffs_entry_t);
 	ffs_entry_t* entries = (ffs_entry_t*) kmalloc_p(actual_size);
@@ -219,5 +221,6 @@ void init_ffs(){
 	root->length = entry.length;
 	root->create_file = &ffs_create_file;
 	root->exists = 1;
+	ffs->root = root;
 	set_root_directory(root);
 }

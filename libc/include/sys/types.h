@@ -3,4 +3,5 @@
 typedef unsigned int pid_t;
 typedef unsigned long uid_t;
 typedef unsigned long gid_t;
+typedef unsigned int mode_t;
 #endif

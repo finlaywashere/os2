@@ -12,7 +12,8 @@ OUTPUT = ../sysroot/
 
 OBJS = src/ls.o \
 src/cat.o \
-src/error.o
+src/error.o \
+src/mkdir.o
 
 LINK_LIST=\
 $(LDFLAGS) \

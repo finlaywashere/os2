@@ -260,7 +260,20 @@ void syscall_readdir(registers_t* regs){
     regs->rax = count;
 }
 void syscall_readlink(registers_t* regs){}
-void syscall_mkdir(registers_t* regs){}
+void syscall_mkdir(registers_t* regs){
+	uint64_t buffer_addr = regs->rbx;
+	uint8_t* buffer = (uint8_t*) buffer_addr;
+	uint64_t count = strlen(buffer);
+	if(usermode_buffer_safety(buffer_addr,count)){
+		regs->rax = -1;
+		return;
+	}
+	uint64_t flags = regs->rcx;
+	process_t* process = get_process();
+	mkdir(buffer,flags,process->current_directory);
+	regs->rax = 0;
+	return;
+}
 void syscall_mknod(registers_t* regs){}
 void syscall_link(registers_t* regs){}
 void syscall_kill(registers_t* regs){

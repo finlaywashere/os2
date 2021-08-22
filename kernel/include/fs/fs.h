@@ -37,6 +37,7 @@ struct user_fs_node{
 typedef struct user_fs_node user_fs_node_t;
 
 #include <fs/ffs.h>
+#include <fs/fat.h>
 
 void init_filesystems();
 void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent);

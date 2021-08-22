@@ -21,7 +21,8 @@ src/stdlib.o \
 src/unistd.o \
 src/sys/utsname.o \
 src/signal.o \
-src/wait.o
+src/wait.o \
+src/sys/stat.o
 
 LINK_LIST=\
 $(LDFLAGS) \

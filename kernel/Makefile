@@ -22,7 +22,8 @@ src/fs/ffs.o \
 src/elf.o \
 src/process.o \
 src/syscall.o \
-src/safety.o
+src/safety.o \
+src/fs/fat.o
 
 LINK_LIST=\
 $(LDFLAGS) \

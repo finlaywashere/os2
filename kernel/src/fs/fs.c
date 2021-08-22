@@ -1,9 +1,10 @@
 #include <fs/fs.h>
+#include <utils.h>
 
 fs_node_t* root_directory;
 
 void init_filesystems(){
-	init_ffs();
+	init_fat();
 }
 uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir){
 	return create_file(name,flags,0,dir);

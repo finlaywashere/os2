@@ -12,9 +12,15 @@ build: install-headers
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) && $(MAKE) link && $(MAKE) install
 	@export NAME=$(NAME) && cd bootloader/ && $(MAKE) && $(MAKE) iso
-	@export NAME=$(NAME) && cd test_programs/ && $(MAKE) && $(MAKE) iso
+	@export NAME=$(NAME) && cd test_programs/ && $(MAKE)
 	cp bootloader/bootloader.iso disk.iso
 	dd if=kernel/bin/kernel.elf of=disk.iso bs=512 seek=33 count=94
+	dd if=/dev/zero of=disk.iso bs=512 seek=130 count=81920
+	./mkdisk.sh
+	sudo mount -o loop,offset=66560,umask=000 disk.iso disk/
+	@export NAME=$(NAME) && cd test_programs/ && $(MAKE) iso
+	sudo umount disk/
+
 clean:
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) clean
 	@export NAME=$(NAME) && cd libc/ && $(MAKE) clean
@@ -31,7 +37,7 @@ install-headers:
 	cp -r libc/include/* sysroot/usr/include/
 qemu: build
 	$(QEMU) $(QEMUFLAGS) -monitor stdio
-gdb: build
+gdb:
 	$(QEMU) $(QEMUFLAGS) -monitor stdio -s -S
 debug: build
 	$(QEMU) $(QEMUFLAGS) -d int

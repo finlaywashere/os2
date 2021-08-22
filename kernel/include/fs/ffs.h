@@ -44,14 +44,15 @@ typedef struct chain_block chain_block_t;
 struct ffs{
 	parameter_block_t parameters;
 	chain_block_t* chain_blocks;
+	fs_node_t* root;
 };
 typedef struct ffs ffs_t;
 
 void init_ffs();
-void ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer);
-void ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer);
-void ffs_read_dir(fs_node_t* dir, fs_node_t* buffer);
-void ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t length, fs_node_t* buffer);
+uint8_t ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer);
+uint8_t ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer);
+uint8_t ffs_read_dir(fs_node_t* dir, fs_node_t* buffer);
+uint8_t ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t length, fs_node_t* buffer);
 uint64_t ffs_dir_entries(fs_node_t* file);
 uint8_t ffs_create_file(fs_node_t* dir, char* name, uint16_t flags, uint16_t type);
 

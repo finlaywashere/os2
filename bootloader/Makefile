@@ -73,7 +73,7 @@ setup:
 	@mkdir -p $(INCLUDEDIR)
 iso:
 	rm -f $(ISO)
-	cp src/arch/i686/bootloader.o $(ISO)
+	dd if=src/arch/i686/bootloader.o of=$(ISO) bs=512 count=1 seek=0
 	dd if=src/arch/x86_64/stage2.o of=$(ISO) bs=512 seek=1 count=4
 qemu:
 	$(QEMU) --no-reboot -no-shutdown --hda $(ISO) -monitor stdio

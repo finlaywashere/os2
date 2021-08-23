@@ -6,8 +6,9 @@ uint32_t partition_sector;
 uint64_t fat_partition_start;
 fat_bpb_t* fat_bpb;
 
-uint32_t cluster_to_sector(uint32_t cluster){
-	return ((cluster - 2) * fat_bpb->bpb.sectors_per_cluster) + fat_bpb->bpb.reserved_sectors;
+uint32_t __attribute__((noinline)) cluster_to_sector(uint32_t cluster){
+	uint64_t first_sector = fat_bpb->bpb.reserved_sectors + (fat_bpb->bpb.num_fats * fat_bpb->ebpb.sectors_per_fat);
+	return ((cluster - 2) * fat_bpb->bpb.sectors_per_cluster) + first_sector;
 }
 uint32_t get_next_cluster(uint32_t cluster){
 	uint32_t fat[fat_bpb->bpb.bytes_per_sector];
@@ -58,7 +59,7 @@ uint8_t fat_read_file(fs_node_t* file, uint64_t offset, uint64_t count, uint8_t*
 	uint32_t sectors_per_cluster = fat_bpb->bpb.sectors_per_cluster;
 	uint8_t* tmp_buffer = (uint8_t*) kmalloc_p(sectors_per_cluster*fat_bpb->bpb.bytes_per_sector);
 	uint64_t start_byte = offset % (sectors_per_cluster*fat_bpb->bpb.bytes_per_sector);
-	uint64_t sector_offset = fat_bpb->bpb.num_fats*fat_bpb->ebpb.sectors_per_fat + fat_partition_start; //+fat_bpb->bpb.reserved_sectors;
+	uint64_t sector_offset = fat_partition_start;
 	
 	uint64_t bytes_per_cluster = fat_bpb->bpb.sectors_per_cluster * fat_bpb->bpb.bytes_per_sector;
 	uint64_t cluster_offset = offset/bytes_per_cluster;
@@ -119,7 +120,7 @@ uint64_t fat_dir_entries(fs_node_t* file){
 	uint64_t num_entries = cluster_count * fat_bpb->bpb.sectors_per_cluster * fat_bpb->bpb.bytes_per_sector / sizeof(fat_dir_entry_t);
 	uint64_t result = 0;
 	fat_dir_entry_t* buffer = (fat_dir_entry_t*) kmalloc_p(fat_bpb->bpb.sectors_per_cluster * fat_bpb->bpb.bytes_per_sector);
-	uint64_t sector_offset = fat_bpb->bpb.num_fats*fat_bpb->ebpb.sectors_per_fat + fat_partition_start; //+fat_bpb->bpb.reserved_sectors;
+	uint64_t sector_offset = fat_partition_start;
 	for(uint64_t i = 0; i < cluster_count; i++){
 		read_disk(fat_root_disk>>8,cluster_to_sector(clusters[i]) + sector_offset,fat_bpb->bpb.sectors_per_cluster,buffer);
 		for(uint64_t i2 = 0; i2 < fat_bpb->bpb.sectors_per_cluster * fat_bpb->bpb.bytes_per_sector / sizeof(fat_dir_entry_t); i2++){

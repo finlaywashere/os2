@@ -12,6 +12,9 @@ void init_paging(){
 	page_directory = (page_table_t*) (((uint64_t)page_directory)+0xffffff8000000000);
 	page_directory->entries[0] = 0x0; // Clear identity mappings
 }
+uint64_t phys_to_virt(uint64_t physical){
+	return physical + 0xffffff8000000000;
+}
 
 void set_page_directory(page_table_t* pd){
 	asm volatile("mov %0, %%cr3" ::"r" (get_physical_addr((uint64_t) pd)));

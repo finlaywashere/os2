@@ -20,4 +20,5 @@ void set_page_directory(page_table_t* pd);
 page_table_t* get_curr_page_directory();
 page_table_t* hard_copy(page_table_t* table);
 uint64_t find_first_available_page();
+uint64_t phys_to_virt(uint64_t physical);
 #endif

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <mem/vmm.h>
-#include <arch/x86_64/driver/disk/ide.h>
+#include <arch/x86_64/driver/disk/ahci.h>
 
 struct disk{
 	uint8_t flags; // 1 if drive exists, 0 otherwise. Might be used later for drive info

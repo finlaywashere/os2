@@ -5,7 +5,7 @@ uint8_t disk_count;
 
 void init_disks(){
 	disks = (disk_t*) kmalloc_p(sizeof(disk_t) * 256); // Max of 256 disks
-	init_ide();
+	init_ahci();
 }
 uint8_t get_disk_count(){
 	return disk_count;

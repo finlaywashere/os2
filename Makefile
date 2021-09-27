@@ -5,8 +5,10 @@ QEMU = qemu-system-x86_64
 QEMUFLAGS = --no-reboot \
 -no-shutdown \
 -m size=1024 \
--drive file=disk.iso,id=drive0,if=ide \
--drive file=ffs.iso,id=drive1,if=ide
+-drive id=disk,file=disk.iso,if=none \
+-device ich9-ahci,id=ahci  \
+-device ide-hd,drive=disk,bus=ahci.0
+
 
 build: install-headers
 	@export NAME=$(NAME) && cd kernel/ && $(MAKE) && $(MAKE) link

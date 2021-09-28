@@ -16,6 +16,7 @@
 #define HBA_PxCMD_FRE   0x0010
 #define HBA_PxCMD_FR    0x4000
 #define HBA_PxCMD_CR    0x8000
+#define HBA_PxIS_TFES   (1 << 30)
 
 typedef enum{
 	FIS_TYPE_REG_H2D	= 0x27,	// Register FIS - host to device
@@ -135,17 +136,17 @@ volatile struct hba_port{
 	uint32_t clbu;
 	uint32_t fb; // FIS base address (upper and lower)
 	uint32_t fbu;
-	uint32_t is;
+	volatile uint32_t is;
 	uint32_t ie;
 	volatile uint32_t cmd;
 	uint32_t rsv0;
-	uint32_t tfd;
+	volatile uint32_t tfd;
 	uint32_t sig;
 	uint32_t ssts;
 	uint32_t sctl;
 	uint32_t serr;
 	uint32_t sact;
-	uint32_t ci;
+	volatile uint32_t ci;
 	uint32_t sntf;
 	uint32_t fbs;
 	uint32_t rsv1[11];

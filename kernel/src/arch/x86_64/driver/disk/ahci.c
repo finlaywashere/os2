@@ -19,12 +19,98 @@ int ahci_get_type(hba_port_t *port){
 		return AHCI_DEV_NULL;
 	return AHCI_DEV_SATA;
 }
+int ahci_find_cmdslot(hba_port_t* port){
+	uint32_t slots = (port->sact | port->ci);
+	for(int i = 0; i < 32; i++){
+		if((slots & (1 << i)) == 0)
+			return i;
+	}
+	panic("Error: Failed to find AHCI command slot!");
+	return -1;
+}
+
+int ahci_cmd(hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, int write){
+	port->is = (uint32_t) -1; // Clear interrupt bits
+	int spin = 0;
+	int slot = ahci_find_cmdslot(port);
+	if(slot == -1)
+		return 0;
+	uint64_t cmd_address = ((uint64_t) port->clb) | (((uint64_t) port->clbu) << 32);
+	hba_cmd_header_t *cmdheader = (hba_cmd_header_t*) phys_to_virt(cmd_address);
+	cmdheader += slot;
+	cmdheader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);
+	cmdheader->w = write;
+	cmdheader->p = 1;
+	cmdheader->c = 1;
+	cmdheader->prdtl = (uint16_t)((count-1)>>4) + 1;
+	uint64_t tbl_address = ((uint64_t) cmdheader->ctba) | (((uint64_t) cmdheader->ctbau) << 32);
+	hba_cmd_tbl_t* cmdtbl = (hba_cmd_tbl_t*) phys_to_virt(tbl_address);
+	memset(cmdtbl,0,sizeof(hba_cmd_tbl_t) + (cmdheader->prdtl-1)*sizeof(hba_prdt_entry_t));
+	
+	uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
+	int i = 0;
+	for(; i < cmdheader->prdtl-1; i++){
+		cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
+		cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 8K bytes
+		cmdtbl->prdt_entry[i].i = 1;
+		buf += 4*1024; // 4K words
+		count -= 16;
+	}
+	cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
+	cmdtbl->prdt_entry[i].dbc = (count << 9) - 1; // 512 bytes per sector
+	cmdtbl->prdt_entry[i].i = 1;
+
+	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*) (&cmdtbl->cfis);
+	cmdfis->fis_type = FIS_TYPE_REG_H2D;
+	cmdfis->c = 1;
+	if(write == 0)
+		cmdfis->command = ATA_CMD_READ_DMA_EX;
+	else
+		cmdfis->command = ATA_CMD_WRITE_DMA_EX;
+
+	cmdfis->lba0 = (uint8_t) lba;
+	cmdfis->lba1 = (uint8_t) (lba >> 8);
+	cmdfis->lba2 = (uint8_t) (lba >> 16);
+	cmdfis->lba3 = (uint8_t) (lba >> 24);
+	cmdfis->lba4 = (uint8_t) (lba >> 32);
+	cmdfis->lba5 = (uint8_t) (lba >> 40);
+
+	cmdfis->countl = count & 0xFF;
+	cmdfis->counth = (count >> 8) & 0xFF;
+
+	cmdfis->device = 1 << 6;
+
+	while((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000){
+		spin++;
+	}
+	if(spin == 1000000){
+		panic("AHCI port is hung!");
+		return 0;
+	}
+	port->ci = 1;
+
+	while(1){
+		if((port->ci & (1<<slot)) == 0)
+			break;
+		if(port->is & HBA_PxIS_TFES){
+			log_error("AHCI read/write disk error!");
+			return 0;
+		}
+	}
+	if(port->is & HBA_PxIS_TFES){
+		log_error("AHCI read/write disk error!");
+		return 0;
+	}
+	return 1;
+}
 
 uint8_t ahci_write_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
-	//TODO: Implement this
+	hba_port_t* port = &ahci_mem->ports[disk->identifier];
+    return ahci_cmd(port,lba,count,(uint16_t*) buffer, 1);
 }
 uint8_t ahci_read_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
-	//TODO: Implement this
+	hba_port_t* port = &ahci_mem->ports[disk->identifier];
+	return ahci_cmd(port,lba,count,(uint16_t*) buffer, 0);
 }
 void ahci_probe_port(){
 	uint32_t pi = ahci_mem->pi;

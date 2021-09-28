@@ -7,7 +7,7 @@
 
 hba_mem_t* ahci_mem;
 
-int ahci_get_type(hba_port_t *port){
+int ahci_get_type(volatile hba_port_t *port){
 	uint32_t ssts = port->ssts;
 
 	uint8_t ipm = (ssts >> 8) & 0xF;
@@ -19,7 +19,7 @@ int ahci_get_type(hba_port_t *port){
 		return AHCI_DEV_NULL;
 	return AHCI_DEV_SATA;
 }
-int ahci_find_cmdslot(hba_port_t* port){
+int ahci_find_cmdslot(volatile hba_port_t* port){
 	uint32_t slots = (port->sact | port->ci);
 	for(int i = 0; i < 32; i++){
 		if((slots & (1 << i)) == 0)
@@ -29,7 +29,7 @@ int ahci_find_cmdslot(hba_port_t* port){
 	return -1;
 }
 
-int ahci_cmd(hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, int write){
+int ahci_cmd(volatile hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, int write){
 	port->is = (uint32_t) -1; // Clear interrupt bits
 	int spin = 0;
 	int slot = ahci_find_cmdslot(port);
@@ -40,7 +40,6 @@ int ahci_cmd(hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, i
 	cmdheader += slot;
 	cmdheader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);
 	cmdheader->w = write;
-	cmdheader->p = 1;
 	cmdheader->c = 1;
 	cmdheader->prdtl = (uint16_t)((count-1)>>4) + 1;
 	uint64_t tbl_address = ((uint64_t) cmdheader->ctba) | (((uint64_t) cmdheader->ctbau) << 32);
@@ -52,13 +51,13 @@ int ahci_cmd(hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, i
 	for(; i < cmdheader->prdtl-1; i++){
 		cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
 		cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 8K bytes
-		cmdtbl->prdt_entry[i].i = 1;
+		cmdtbl->prdt_entry[i].i = 0;
 		buf += 4*1024; // 4K words
 		count -= 16;
 	}
 	cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
 	cmdtbl->prdt_entry[i].dbc = (count << 9) - 1; // 512 bytes per sector
-	cmdtbl->prdt_entry[i].i = 1;
+	cmdtbl->prdt_entry[i].i = 0;
 
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*) (&cmdtbl->cfis);
 	cmdfis->fis_type = FIS_TYPE_REG_H2D;
@@ -78,7 +77,7 @@ int ahci_cmd(hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, i
 	cmdfis->countl = count & 0xFF;
 	cmdfis->counth = (count >> 8) & 0xFF;
 
-	cmdfis->device = 1 << 6;
+	cmdfis->device = 1 << 6; // LBA mode
 
 	while((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < 1000000){
 		spin++;
@@ -101,15 +100,16 @@ int ahci_cmd(hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* buffer, i
 		log_error("AHCI read/write disk error!");
 		return 0;
 	}
+	while(port->ci != 0);
 	return 1;
 }
 
 uint8_t ahci_write_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
-	hba_port_t* port = &ahci_mem->ports[disk->identifier];
+	volatile hba_port_t* port = &ahci_mem->ports[disk->identifier];
     return ahci_cmd(port,lba,count,(uint16_t*) buffer, 1);
 }
 uint8_t ahci_read_disk(disk_t* disk, uint64_t lba, uint64_t count, uint8_t* buffer){
-	hba_port_t* port = &ahci_mem->ports[disk->identifier];
+	volatile hba_port_t* port = &ahci_mem->ports[disk->identifier];
 	return ahci_cmd(port,lba,count,(uint16_t*) buffer, 0);
 }
 void ahci_probe_port(){
@@ -139,13 +139,13 @@ void ahci_probe_port(){
 		}
 	}
 }
-void start_cmd(hba_port_t *port){
+void start_cmd(volatile hba_port_t *port){
 	while(port->cmd & HBA_PxCMD_CR);
 
 	port->cmd |= HBA_PxCMD_FRE;
 	port->cmd |= HBA_PxCMD_ST;
 }
-void stop_cmd(hba_port_t* port){
+void stop_cmd(volatile hba_port_t* port){
 	port->cmd &= ~HBA_PxCMD_ST;
 	port->cmd &= ~HBA_PxCMD_FRE;
 	while(1){
@@ -163,7 +163,7 @@ void ahci_rebase(){
 	memset((uint8_t*)ahci_base,0,size);
 	ahci_base = get_physical_addr(ahci_base);
 	for(int i = 0; i < 32; i++){
-		hba_port_t *port = &ahci_mem->ports[i];
+		volatile hba_port_t *port = &ahci_mem->ports[i];
 		stop_cmd(port);
 		
 		port->clb = ahci_base;
@@ -193,5 +193,6 @@ void init_ahci(){
 	uint64_t base = phys_to_virt(controller->bar5);
 	ahci_mem = (hba_mem_t*) base;
 	ahci_rebase();
+	ahci_mem->ghc |= (1 << 1) | (1 << 31);
 	ahci_probe_port();
 }

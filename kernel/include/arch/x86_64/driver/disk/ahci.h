@@ -132,46 +132,46 @@ volatile struct fis_dma_setup{
 typedef struct fis_dma_setup fis_dma_setup_t;
 
 volatile struct hba_port{
-	uint32_t clb; // Command list base address (upper and lower)
-	uint32_t clbu;
-	uint32_t fb; // FIS base address (upper and lower)
-	uint32_t fbu;
+	volatile uint32_t clb; // Command list base address (upper and lower)
+	volatile uint32_t clbu;
+	volatile uint32_t fb; // FIS base address (upper and lower)
+	volatile uint32_t fbu;
 	volatile uint32_t is;
-	uint32_t ie;
+	volatile uint32_t ie;
 	volatile uint32_t cmd;
 	uint32_t rsv0;
 	volatile uint32_t tfd;
-	uint32_t sig;
-	uint32_t ssts;
-	uint32_t sctl;
-	uint32_t serr;
-	uint32_t sact;
+	volatile uint32_t sig;
+	volatile uint32_t ssts;
+	volatile uint32_t sctl;
+	volatile uint32_t serr;
+	volatile uint32_t sact;
 	volatile uint32_t ci;
-	uint32_t sntf;
-	uint32_t fbs;
+	volatile uint32_t sntf;
+	volatile uint32_t fbs;
 	uint32_t rsv1[11];
-	uint32_t vendor[4];
+	volatile uint32_t vendor[4];
 }__attribute__((packed));
 
 typedef struct hba_port hba_port_t;
 
 volatile struct hba_mem{
-	uint32_t cap;
-	uint32_t ghc;
-	uint32_t is;
-	uint32_t pi;
-	uint32_t version;
-	uint32_t ccc_ctl;
-	uint32_t ccc_pts;
-	uint32_t em_loc;
-	uint32_t em_ctl;
-	uint32_t cap2;
-	uint32_t bohc;
+	volatile uint32_t cap;
+	volatile uint32_t ghc;
+	volatile uint32_t is;
+	volatile uint32_t pi;
+	volatile uint32_t version;
+	volatile uint32_t ccc_ctl;
+	volatile uint32_t ccc_pts;
+	volatile uint32_t em_loc;
+	volatile uint32_t em_ctl;
+	volatile uint32_t cap2;
+	volatile uint32_t bohc;
 	
 	uint8_t reserved[116];
-	uint8_t vendor[96];
+	volatile uint8_t vendor[96];
 
-	hba_port_t ports[32];
+	volatile hba_port_t ports[32];
 }__attribute__((packed));
 
 volatile struct ahci_command_list{
@@ -206,8 +206,8 @@ volatile struct hba_cmd_header{
 	uint8_t pmport:4;
 	uint16_t prdtl;
 	volatile uint32_t prdbc;
-	uint32_t ctba; // command table descriptor base address (upper and lower)
-	uint32_t ctbau;
+	volatile uint32_t ctba; // command table descriptor base address (upper and lower)
+	volatile uint32_t ctbau;
 	uint32_t rsv1[4];
 }__attribute__((packed));
 

@@ -46,18 +46,18 @@ int ahci_cmd(volatile hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* 
 	hba_cmd_tbl_t* cmdtbl = (hba_cmd_tbl_t*) phys_to_virt(tbl_address);
 	memset(cmdtbl,0,sizeof(hba_cmd_tbl_t) + (cmdheader->prdtl-1)*sizeof(hba_prdt_entry_t));
 	
-	uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
+uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
 	int i = 0;
 	for(; i < cmdheader->prdtl-1; i++){
 		cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
 		cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 8K bytes
-		cmdtbl->prdt_entry[i].i = 0;
+		cmdtbl->prdt_entry[i].i = i;
 		buf += 4*1024; // 4K words
 		count -= 16;
 	}
 	cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
-	cmdtbl->prdt_entry[i].dbc = (count << 9) - 1; // 512 bytes per sector
-	cmdtbl->prdt_entry[i].i = 0;
+	cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 512 bytes per sector
+	cmdtbl->prdt_entry[i].i = i;
 
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*) (&cmdtbl->cfis);
 	cmdfis->fis_type = FIS_TYPE_REG_H2D;
@@ -86,7 +86,7 @@ int ahci_cmd(volatile hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* 
 		panic("AHCI port is hung!");
 		return 0;
 	}
-	port->ci = 1;
+	port->ci = 1<<slot;
 
 	while(1){
 		if((port->ci & (1<<slot)) == 0)
@@ -116,7 +116,11 @@ void ahci_probe_port(){
 	uint32_t pi = ahci_mem->pi;
 	for(int i = 0; i < 32; i++){
 		if(pi & (1 << i)){
-			int type = ahci_get_type(&ahci_mem->ports[i]);
+			hba_port_t* port = &ahci_mem->ports[i];
+			port->sctl |= 0b10;
+			for(int i = 0; i < 100000000; i++){}
+			port->sctl &= ~0b10;
+			int type = ahci_get_type(port);
 			if(type == AHCI_DEV_SATA){
 				log_warn("Found SATA AHCI device!\n");
 				disk_t disk;
@@ -193,6 +197,25 @@ void init_ahci(){
 	uint64_t base = phys_to_virt(controller->bar5);
 	ahci_mem = (hba_mem_t*) base;
 	ahci_rebase();
+	for(int i = 0; i < 32; i++){
+		if(ahci_mem->pi & i){
+			stop_cmd(&ahci_mem->ports[i]);
+		}
+	}
+	ahci_mem->ghc |= 1 | (1 << 31);
+	int spin = 0;
+	while(ahci_mem->ghc & 1){
+		spin++;
+		if(spin > 100000){
+			panic("Timed out resetting AHCI controller");
+		}
+	}
 	ahci_mem->ghc |= (1 << 1) | (1 << 31);
+	for(int i = 0; i < 32; i++){
+		if(ahci_mem->pi & i){
+			start_cmd(&ahci_mem->ports[i]);
+		}
+	}
+	log_error_num(ahci_mem->ghc,16);
 	ahci_probe_port();
 }

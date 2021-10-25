@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <mem/vmm.h>
 #include <arch/x86_64/driver/disk/sata.h>
+#include <arch/x86_64/driver/timer/timer.h>
 
 #define AHCI_DEV_NULL 0
 #define AHCI_DEV_SATA 1

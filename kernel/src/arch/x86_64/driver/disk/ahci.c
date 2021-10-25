@@ -51,13 +51,13 @@ uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
 	for(; i < cmdheader->prdtl-1; i++){
 		cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
 		cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 8K bytes
-		cmdtbl->prdt_entry[i].i = i;
+		cmdtbl->prdt_entry[i].i = 1;
 		buf += 4*1024; // 4K words
 		count -= 16;
 	}
 	cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
 	cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 512 bytes per sector
-	cmdtbl->prdt_entry[i].i = i;
+	cmdtbl->prdt_entry[i].i = 1;
 
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*) (&cmdtbl->cfis);
 	cmdfis->fis_type = FIS_TYPE_REG_H2D;
@@ -145,7 +145,10 @@ void ahci_probe_port(){
 }
 void start_cmd(volatile hba_port_t *port){
 	while(port->cmd & HBA_PxCMD_CR);
-
+	
+	port->cmd |= 1 << 3; // Set CLO bit
+	sleep(1);
+	port->cmd &= ~(1 << 3); // Clear CLO bit
 	port->cmd |= HBA_PxCMD_FRE;
 	port->cmd |= HBA_PxCMD_ST;
 }
@@ -196,8 +199,9 @@ void init_ahci(){
 	}
 	uint64_t base = phys_to_virt(controller->bar5);
 	ahci_mem = (hba_mem_t*) base;
+	ahci_mem->bohc |= 1 << 1;
 	ahci_rebase();
-	for(int i = 0; i < 32; i++){
+	/*for(int i = 0; i < 32; i++){
 		if(ahci_mem->pi & i){
 			stop_cmd(&ahci_mem->ports[i]);
 		}
@@ -209,13 +213,12 @@ void init_ahci(){
 		if(spin > 100000){
 			panic("Timed out resetting AHCI controller");
 		}
-	}
+	}*/
 	ahci_mem->ghc |= (1 << 1) | (1 << 31);
-	for(int i = 0; i < 32; i++){
+	/*for(int i = 0; i < 32; i++){
 		if(ahci_mem->pi & i){
 			start_cmd(&ahci_mem->ports[i]);
 		}
-	}
-	log_error_num(ahci_mem->ghc,16);
+	}*/
 	ahci_probe_port();
 }

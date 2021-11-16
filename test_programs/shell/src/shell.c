@@ -77,6 +77,8 @@ void main(){
 		uint64_t pid = fork(); // Fork and execute new program
 		if(pid == 0){
 			execv(buffer,args);
+			// If execution gets here then its not an executable file!
+			exit(1);
 		}else{
 			waitpid(pid);
 		}

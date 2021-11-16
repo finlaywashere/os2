@@ -86,6 +86,10 @@ void syscall_exec(registers_t* regs){
 	fs_node_t* file = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
 	get_file(buffer,file,process_data->current_directory);
 	uint64_t entry_point = load_elf(file, dst);
+	if((signed long) entry_point < 0){
+		regs->rax = 0;
+		return;
+	}
 	create_process_pid_nodesc(process, dst, entry_point,argv,argc,0,0,0);
 
 	memcpy(&process_data->regs,regs,sizeof(registers_t));

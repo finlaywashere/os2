@@ -7,7 +7,11 @@ uint64_t load_elf(fs_node_t* file, page_table_t* dst){
 	file->read_file(file,0,file->length,buffer); // Read whole file to memory
 	
 	elf_header_t* header = (elf_header_t*) buffer;
-	
+	if(header->sig[0] != 0x7F) return -2;
+	if(header->sig[1] != 'E') return -2;
+	if(header->sig[2] != 'L') return -2;
+	if(header->sig[3] != 'F') return -2;
+
 	if(value_safety(header->header_table_position,0,file->length)){
 		return -1;
 	}

@@ -4,7 +4,8 @@ QEMU = qemu-system-x86_64
 
 QEMUFLAGS = --no-reboot \
 --no-shutdown \
--machine type=q35 \
+-machine type=q35,accel=kvm \
+-cpu host \
 -vga cirrus \
 -m size=1024 \
 -drive id=disk,file=disk.iso,if=none \

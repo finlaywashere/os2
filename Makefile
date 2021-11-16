@@ -3,11 +3,16 @@ NAME = OS2
 QEMU = qemu-system-x86_64
 
 QEMUFLAGS = --no-reboot \
--no-shutdown \
+--no-shutdown \
+-machine type=q35,accel=kvm \
+-cpu host \
+-vga cirrus \
 -m size=1024 \
 -drive id=disk,file=disk.iso,if=none \
--device ich9-ahci,id=ahci  \
+-device ahci,id=ahci  \
 -device ide-hd,drive=disk,bus=ahci.0
+
+TRACE = -d guest_errors,unimp
 
 
 build: install-headers
@@ -45,3 +50,5 @@ debug: build
 	$(QEMU) $(QEMUFLAGS) -d int
 gdbd: build
 	$(QEMU) $(QEMUFLAGS) -d int -s -S
+gdbe: build
+	$(QEMU) $(QEMUFLAGS) $(TRACE) -s -S

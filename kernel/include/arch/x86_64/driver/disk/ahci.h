@@ -31,9 +31,10 @@ typedef enum{
 } FIS_TYPE;
 
 // Host to device
-volatile struct fis_reg_h2d{
+typedef struct fis_reg_h2d{
 	uint8_t fis_type;
 	uint8_t pmport:4;
+	uint8_t rsv0:3;
 	uint8_t c:1;
 	uint8_t command;
 	uint8_t featurel;
@@ -50,11 +51,9 @@ volatile struct fis_reg_h2d{
 	uint8_t icc;
 	uint8_t control;
 	uint8_t reserved[4];
-}__attribute__((packed));
+}__attribute__((packed)) fis_reg_h2d_t;
 
-typedef struct fis_reg_h2d fis_reg_h2d_t;
-
-volatile struct fis_reg_d2h{
+typedef struct fis_reg_d2h{
 	uint8_t fis_type;
 	uint8_t pmport:4;
 	uint8_t rsv0:2;
@@ -73,49 +72,18 @@ volatile struct fis_reg_d2h{
 	uint8_t countl;
 	uint8_t counth;
 	uint8_t rsv3[6];
-}__attribute__((packed));
+} fis_reg_d2h_t;
 
-typedef struct fis_reg_d2h fis_reg_d2h_t;
-
-volatile struct fis_data{
+typedef struct fis_data{
 	uint8_t fis_type;
 	uint8_t pmport:4;
 	uint8_t rsv0:4;
 	uint8_t rsv1[2];
 
 	uint32_t data[1];
-}__attribute__((packed));
+} fis_data_t;
 
-typedef struct fis_data fis_data_t;
-
-volatile struct fis_pio_setup{
-	uint8_t fis_type;
-	uint8_t pmport:4;
-	uint8_t rsv0:1;
-	uint8_t d:1; // transfer direction 1 = device to host
-	uint8_t i:1;
-	uint8_t rsv1:1;
-	uint8_t status;
-	uint8_t error;
-	uint8_t lba0;
-	uint8_t lba1;
-	uint8_t lba2;
-	uint8_t device;
-	uint8_t lba3;
-	uint8_t lba4;
-	uint8_t lba5;
-	uint8_t rsv2;
-	uint8_t countl;
-	uint8_t counth;
-	uint8_t rsv3;
-	uint8_t e_status;
-	uint16_t tc;
-	uint8_t rsv4[2];
-}__attribute__((packed));
-
-typedef struct fis_pio_setup fis_pio_setup_t;
-
-volatile struct fis_dma_setup{
+typedef struct fis_dma_setup{
 	uint8_t fis_type;
 	uint8_t pmport:4;
 	uint8_t rsv0:1;
@@ -128,11 +96,9 @@ volatile struct fis_dma_setup{
 	uint32_t dma_buffer_offset;
 	uint32_t dma_count;
 	uint32_t rsv3;
-}__attribute__((packed));
+} fis_dma_setup_t;
 
-typedef struct fis_dma_setup fis_dma_setup_t;
-
-volatile struct hba_port{
+typedef volatile struct hba_port{
 	volatile uint32_t clb; // Command list base address (upper and lower)
 	volatile uint32_t clbu;
 	volatile uint32_t fb; // FIS base address (upper and lower)
@@ -152,11 +118,9 @@ volatile struct hba_port{
 	volatile uint32_t fbs;
 	uint32_t rsv1[11];
 	volatile uint32_t vendor[4];
-}__attribute__((packed));
+} hba_port_t;
 
-typedef struct hba_port hba_port_t;
-
-volatile struct hba_mem{
+typedef volatile struct hba_mem{
 	volatile uint32_t cap;
 	volatile uint32_t ghc;
 	volatile uint32_t is;
@@ -172,30 +136,10 @@ volatile struct hba_mem{
 	uint8_t reserved[116];
 	volatile uint8_t vendor[96];
 
-	volatile hba_port_t ports[32];
-}__attribute__((packed));
+	volatile hba_port_t ports[1];
+} hba_mem_t;
 
-volatile struct ahci_command_list{
-	
-}__attribute__((packed));
-
-typedef struct ahci_command_list ahci_command_list_t;
-
-volatile struct ahci_fis{
-	fis_dma_setup_t dsfis;
-	uint8_t pad0[4];
-	fis_pio_setup_t psfis;
-	uint8_t pad1[12];
-	fis_reg_d2h_t rfis;
-	uint8_t pad2[4];
-	uint64_t sdbfis;
-	uint8_t ufis[64];
-	uint8_t rsv[96];
-}__attribute__((packed));
-
-typedef struct ahci_fis ahci_fis_t;
-
-volatile struct hba_cmd_header{
+typedef volatile struct hba_cmd_header{
 	uint8_t cfl:5;
 	uint8_t a:1;
 	uint8_t w:1; // write 1=H2D
@@ -205,37 +149,29 @@ volatile struct hba_cmd_header{
 	uint8_t c:1;
 	uint8_t rsv0:1;
 	uint8_t pmport:4;
-	uint16_t prdtl;
-	volatile uint32_t prdbc;
-	volatile uint32_t ctba; // command table descriptor base address (upper and lower)
-	volatile uint32_t ctbau;
+	volatile uint16_t prdtl;
+	uint32_t prdbc;
+	uint32_t ctba; // command table descriptor base address (upper and lower)
+	uint32_t ctbau;
 	uint32_t rsv1[4];
-}__attribute__((packed));
+} hba_cmd_header_t;
 
-typedef struct hba_cmd_header hba_cmd_header_t;
-
-volatile struct hba_prdt_entry{
+typedef struct hba_prdt_entry{
 	uint32_t dba; // Data base address (upper and lower)
 	uint32_t dbau;
 	uint32_t rsv0;
 	uint32_t dbc:22;
 	uint32_t rsv1:9;
 	uint32_t i:1;
-}__attribute__((packed));
+} hba_prdt_entry_t;
 
-typedef struct hba_prdt_entry hba_prdt_entry_t;
-
-volatile struct hba_cmd_tbl{
+typedef struct hba_cmd_tbl{
 	uint8_t cfis[64];
 	uint8_t acmd[16];
 	uint8_t rsv[48];
 
 	hba_prdt_entry_t prdt_entry[1];
-}__attribute__((packed));
-
-typedef struct hba_cmd_tbl hba_cmd_tbl_t;
-
-typedef struct hba_mem hba_mem_t;
+} hba_cmd_tbl_t;
 
 void init_ahci();
 

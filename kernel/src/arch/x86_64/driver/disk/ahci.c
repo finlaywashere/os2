@@ -19,7 +19,7 @@ int ahci_get_type(volatile hba_port_t *port){
 		return AHCI_DEV_NULL;
 	return AHCI_DEV_SATA;
 }
-int ahci_find_cmdslot(volatile hba_port_t* port){
+int __attribute__ ((noinline)) ahci_find_cmdslot(volatile hba_port_t* port){
 	uint32_t slots = (port->sact | port->ci);
 	for(int i = 0; i < 32; i++){
 		if((slots & (1 << i)) == 0)
@@ -46,7 +46,7 @@ int ahci_cmd(volatile hba_port_t* port, uint64_t lba, uint32_t count, uint16_t* 
 	hba_cmd_tbl_t* cmdtbl = (hba_cmd_tbl_t*) phys_to_virt(tbl_address);
 	memset(cmdtbl,0,sizeof(hba_cmd_tbl_t) + (cmdheader->prdtl-1)*sizeof(hba_prdt_entry_t));
 	
-uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
+	uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
 	int i = 0;
 	for(; i < cmdheader->prdtl-1; i++){
 		cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
@@ -56,7 +56,7 @@ uint16_t* buf = (uint16_t*) get_physical_addr(buffer);
 		count -= 16;
 	}
 	cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
-	cmdtbl->prdt_entry[i].dbc = 8*1024-1; // 512 bytes per sector
+	cmdtbl->prdt_entry[i].dbc = (count << 9)-1; // 512 bytes per sector
 	cmdtbl->prdt_entry[i].i = 1;
 
 	fis_reg_h2d_t *cmdfis = (fis_reg_h2d_t*) (&cmdtbl->cfis);
@@ -117,9 +117,8 @@ void ahci_probe_port(){
 	for(int i = 0; i < 32; i++){
 		if(pi & (1 << i)){
 			hba_port_t* port = &ahci_mem->ports[i];
-			port->sctl |= 0b10;
-			for(int i = 0; i < 100000000; i++){}
-			port->sctl &= ~0b10;
+			port->ie = -1;
+			port->cmd |= 1;
 			int type = ahci_get_type(port);
 			if(type == AHCI_DEV_SATA){
 				log_warn("Found SATA AHCI device!\n");
@@ -169,7 +168,10 @@ void ahci_rebase(){
 	uint64_t ahci_base = kmalloc_p(size);
 	memset((uint8_t*)ahci_base,0,size);
 	ahci_base = get_physical_addr(ahci_base);
+	int pi = ahci_mem->pi;
 	for(int i = 0; i < 32; i++){
+		if(!(pi & (1 << i)))
+			continue;
 		volatile hba_port_t *port = &ahci_mem->ports[i];
 		stop_cmd(port);
 		
@@ -188,6 +190,7 @@ void ahci_rebase(){
 			cmd_header[i].ctbau = 0;
 			ahci_base += 256;
 		}
+		ahci_base += 256*3; // CLB musut be 1024KiB aligned
 		start_cmd(port);
 	}
 }
@@ -199,8 +202,9 @@ void init_ahci(){
 	}
 	uint64_t base = phys_to_virt(controller->bar5);
 	ahci_mem = (hba_mem_t*) base;
-	ahci_mem->bohc |= 1 << 1;
-	ahci_rebase();
+	//ahci_mem->bohc |= 1 << 1;
+	//ahci_rebase();
+	//ahci_mem->ghc |= 1 | (1 << 32);
 	/*for(int i = 0; i < 32; i++){
 		if(ahci_mem->pi & i){
 			stop_cmd(&ahci_mem->ports[i]);
@@ -214,7 +218,7 @@ void init_ahci(){
 			panic("Timed out resetting AHCI controller");
 		}
 	}*/
-	ahci_mem->ghc |= (1 << 1) | (1 << 31);
+	//ahci_mem->ghc |= (1 << 1) | (1 << 31);
 	/*for(int i = 0; i < 32; i++){
 		if(ahci_mem->pi & i){
 			start_cmd(&ahci_mem->ports[i]);

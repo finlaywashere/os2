@@ -69,9 +69,9 @@ uint8_t fat_read_file(fs_node_t* file, uint64_t offset, uint64_t count, uint8_t*
 		read_disk(fat_root_disk >> 8,sector,sectors_per_cluster,tmp_buffer);
 		uint64_t buffer_index = (i-cluster_offset) * sectors_per_cluster * fat_bpb->bpb.bytes_per_sector - start_byte;
 		if(i == cluster_offset){
-			memcpy(&tmp_buffer[start_byte],&buffer[buffer_index],sectors_per_cluster * fat_bpb->bpb.bytes_per_sector-start_byte);
+			memcpy(&buffer[buffer_index],&tmp_buffer[start_byte],sectors_per_cluster * fat_bpb->bpb.bytes_per_sector-start_byte);
 		}else{
-			memcpy(tmp_buffer,&buffer[buffer_index],sectors_per_cluster * fat_bpb->bpb.bytes_per_sector);
+			memcpy(&buffer[buffer_index],tmp_buffer,sectors_per_cluster * fat_bpb->bpb.bytes_per_sector);
 		}
 	}
 	kfree_p(tmp_buffer,sectors_per_cluster*fat_bpb->bpb.bytes_per_sector);

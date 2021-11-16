@@ -122,7 +122,7 @@ page_table_t* hard_copy(page_table_t* table){
 					continue;
 				uint8_t* old_entry = ((p2_entry & 0xFFFFFFFFFFFFF000) + 0xffffff8000000000);
 				uint8_t* new_entry = (uint8_t*) kmalloc_p(0x200000); // Allocate a page of memory
-				memcpy(old_entry,new_entry,0x200000);
+				memcpy(new_entry,old_entry,0x200000);
 				new_p2_table->entries[i3] = (((uint64_t) new_entry) - 0xffffff8000000000) | (p2_entry & 0xFFF); // Copy flags but change address
 			}
 		}

@@ -48,6 +48,8 @@ CFLAGS= \
 -ffreestanding                 \
 -fno-stack-protector           \
 -fno-omit-frame-pointer        \
+-fno-builtin				\
+-fno-tree-loop-distribute-patterns \
 -Wall			       \
 -I$(INCLUDEDIR)
 

@@ -92,7 +92,7 @@ void syscall_exec(registers_t* regs){
 	}
 	create_process_pid_nodesc(process, dst, entry_point,argv,argc,0,0,0);
 
-	memcpy(&process_data->regs,regs,sizeof(registers_t));
+	memcpy(regs,&process_data->regs,sizeof(registers_t));
 }
 void syscall_mmap(registers_t* regs){
 	uint64_t addr = regs->rbx;
@@ -259,7 +259,7 @@ void syscall_readdir(registers_t* regs){
 		u_buffer[i].creation_time = f.creation_time;
 		u_buffer[i].modification_time = f.modification_time;
 		u_buffer[i].length = f.length;
-		memcpy(&f.name,&u_buffer[i].name,20);
+		memcpy(&u_buffer[i].name,&f.name,20);
 	}
     regs->rax = count;
 }

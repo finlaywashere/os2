@@ -78,6 +78,7 @@ void main(){
 		if(pid == 0){
 			execv(buffer,args);
 			// If execution gets here then its not an executable file!
+			printf("Invalid binary!\n");
 			exit(1);
 		}else{
 			waitpid(pid);

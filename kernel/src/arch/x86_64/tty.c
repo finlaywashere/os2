@@ -106,7 +106,7 @@ Copy's a TTY to another TTY
 void tty_copy(uint64_t src_tty, uint64_t dst_tty){
 	uint16_t* src_buffer = ttys[src_tty].buffer;
 	uint16_t* dst_buffer = ttys[dst_tty].buffer;
-	memcpy((uint8_t*)src_buffer,(uint8_t*)dst_buffer, VGA_PIXELS*2); // Convert shorts to bytes!
+	memcpy((uint8_t*) dst_buffer,(uint8_t*)src_buffer, VGA_PIXELS*2); // Convert shorts to bytes!
 }
 void tty_setcolour(uint64_t tty, uint8_t foreground, uint8_t background){
 	uint8_t colour = (((uint16_t)background) << 4) | foreground;

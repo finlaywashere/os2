@@ -26,7 +26,7 @@ uint64_t load_elf(fs_node_t* file, page_table_t* dst){
 	}
 	
 	page_table_t* curr_table = get_curr_page_directory();
-	memcpy((uint8_t*) curr_table, (uint8_t*) dst, sizeof(page_table_t));
+	memcpy((uint8_t*) dst, (uint8_t*) curr_table, sizeof(page_table_t));
 	disable_interrupts();
 	set_page_directory(dst); // Set new page directory
 	
@@ -42,7 +42,7 @@ uint64_t load_elf(fs_node_t* file, page_table_t* dst){
 			return -1;
 		}
 		uint8_t* section_buffer = (uint8_t*) kmalloc_pa(p_header->memory_size/0x200000 + (p_header->memory_size % 0x200000 > 0 ? 1 : 0),0x200000) + p_header->memory_data_offset%0x200000;
-		memcpy((uint8_t*)(((uint64_t)buffer)+p_header->file_data_offset),section_buffer,p_header->file_size);
+		memcpy(section_buffer,(uint8_t*)(((uint64_t)buffer)+p_header->file_data_offset),p_header->file_size);
 		map_pages(get_physical_addr((uint64_t) section_buffer), p_header->memory_data_offset, 0b111, p_header->memory_size);
 		header_addr += header->program_header_entry_size;
 	}

@@ -16,7 +16,9 @@
 #define PROCESS_RUNNING 1
 #define PROCESS_SLEEPING 2
 #define PROCESS_READY 3
-#define PROCESS_WAITPID 4
+#define PROCESS_WAIT 4
+
+#define WAIT_PID 1
 
 #define DESCRIPTOR_PRESENT 1
 
@@ -25,8 +27,16 @@
 #define MAX_FILE_COUNT 50
 #define STACK_SIZE 16384
 #define BUFFER_SIZE 512
+#define MAX_SIGNALS 128
 
 #define MODE_WRITE 1
+
+struct scheduler_info{
+	uint8_t priority;
+	uint8_t wait_type;
+	uint64_t wait_condition;
+};
+typedef struct scheduler_info scheduler_info_t;
 
 struct descriptor{
 	uint8_t flags;
@@ -54,6 +64,8 @@ struct process{
 	uint64_t wait_condition;
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
 	fs_node_t files[MAX_FILE_COUNT];
+	scheduler_info_t sch_info;
+	uint64_t signal_handlers[MAX_SIGNALS];
 };
 
 typedef struct process process_t;

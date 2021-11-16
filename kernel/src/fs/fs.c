@@ -16,7 +16,7 @@ uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir){
 }
 void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 	if(name[0] == '/' && name[1] == 0x0){
-		memcpy((uint8_t*) root_directory, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+		memcpy((uint8_t*) dst_buffer,(uint8_t*) root_directory,sizeof(fs_node_t));
 		return;
 	}
 	fs_node_t* curr = parent;
@@ -46,7 +46,7 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 				if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){
 					curr = &buffer[j];
 					if(curr->type != 0){
-						memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+						memcpy((uint8_t*) dst_buffer,(uint8_t*) curr,sizeof(fs_node_t));
 						return;
 					}
 				}
@@ -64,14 +64,14 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 			fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*dir_length);
 			curr->read_dir(curr,buffer);
 			if(strcmp(segment, ".")){
-				memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+				memcpy((uint8_t*) dst_buffer,(uint8_t*) curr,sizeof(fs_node_t));
 				kfree_p(buffer,sizeof(fs_node_t)*dir_length);
 				return;
 			}
 			for(uint64_t j = 0; j < dir_length; j++){
 				if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){
 					curr = &buffer[j];
-					memcpy((uint8_t*) curr, (uint8_t*) dst_buffer,sizeof(fs_node_t));
+					memcpy((uint8_t*) dst_buffer,(uint8_t*) curr,sizeof(fs_node_t));
 					kfree_p(buffer,sizeof(fs_node_t)*dir_length);
 					return;
 				}

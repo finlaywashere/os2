@@ -7,6 +7,7 @@ process_t* processes;
 
 void init_processes(){
 	processes = (process_t*) kmalloc_p(sizeof(process_t)*MAX_PROCESS_COUNT); // Max of MAX_PROCESS_COUNT of processes
+	memset(processes,0,sizeof(process_t)*MAX_PROCESS_COUNT);
 }
 descriptor_t* get_descriptor(uint64_t id){
 	return &processes[curr_process].descriptors[id];
@@ -20,30 +21,39 @@ uint64_t get_curr_process(){
 void schedule(registers_t* regs){
 	if(curr_max_process == 0)
 		return; // There are no processes to be scheduled
+	process_t process = processes[curr_process];
 	// Save the registers from the current interrupt to the current process' state
-	memcpy(regs,&processes[curr_process].regs,sizeof(registers_t));
-	processes[curr_process].page_table = (uint64_t) get_curr_page_directory();
+	memcpy(&process.regs,regs,sizeof(registers_t));
+	process.page_table = (uint64_t) get_curr_page_directory();
 	// Mark the current process as no longer running if its not already been changed
-	if(processes[curr_process].status == PROCESS_RUNNING)
-		processes[curr_process].status = PROCESS_READY;
+	if(process.status == PROCESS_RUNNING)
+		process.status = PROCESS_READY;
 	// Go to the next process
 	curr_process++;
+	process = processes[curr_process];
 	// We may need to loop through all the processes to find the next one
 	// so, the looped variable marks whether or not we have already hit the
 	// max process and gone back around. This prevents infinite loops
 	int looped = 0;
-	if(processes[curr_process].status == PROCESS_WAITPID){
-		if(processes[processes[curr_process].wait_condition].status == PROCESS_DEAD){
-			processes[curr_process].status = PROCESS_READY; // If the process it is waiting for is dead then resume
+	if(process.status == PROCESS_WAIT){
+		scheduler_info_t sinfo = process.sch_info;
+		if(sinfo.wait_type == WAIT_PID){
+			if(processes[sinfo.wait_condition].status == PROCESS_DEAD){
+				process.status = PROCESS_READY; // If the process it is waiting for is dead then resume
+			}
 		}
 	}
 	// Loop until we find a process thats ready to execute
-	while(processes[curr_process].status != PROCESS_READY){
+	while(process.status != PROCESS_READY){
 		// Increment the current pid, the loop will exit when we find a valid one
 		curr_process++;
-		if(processes[curr_process].status == PROCESS_WAITPID){
-			if(processes[processes[curr_process].wait_condition].status == PROCESS_DEAD){
-				processes[curr_process].status = PROCESS_READY; // If the process it is waiting for is dead then resume
+		process = processes[curr_process];
+		if(process.status == PROCESS_WAIT){
+			scheduler_info_t sinfo = process.sch_info;
+			if(sinfo.wait_type == WAIT_PID){
+				if(processes[sinfo.wait_condition].status == PROCESS_DEAD){
+					process.status = PROCESS_READY; // If the process it is waiting for is dead then resume
+				}
 			}
 		}
 		// If the current pid is above the max then loop back around to 1 (as 0 is the kernel process)
@@ -51,6 +61,7 @@ void schedule(registers_t* regs){
 			curr_process = 1;
 			// Set looped so that this if will never execute again during this interrupt
 			looped = 1;
+			process = processes[curr_process];
 		}else if(curr_process >= MAX_PROCESS_COUNT){
 			// No processes are available so switch to the kernel process
 			curr_process = 0;
@@ -59,17 +70,19 @@ void schedule(registers_t* regs){
 	}
 	// Now the current PID is the one that will be running after the interrupt
 	// Mark the current PID as running
-	processes[curr_process].status = PROCESS_RUNNING;
+	process.status = PROCESS_RUNNING;
 	// Set the rsp for ring 0 in the TSS as this process' shadow stack to prevent stack collisions in the kernel
-	tss_set_rsp(processes[curr_process].shadow_stack);
+	tss_set_rsp(process.shadow_stack);
 	// Copy the new process' saved state to the registers that will be set before executing the new process
-	memcpy(&processes[curr_process].regs,regs,sizeof(registers_t));
+	memcpy(regs,&process.regs,sizeof(registers_t));
 	// Change the page directory to the one where the new process is mapped
-	set_page_directory(processes[curr_process].page_table);
+	set_page_directory(process.page_table);
 }
 void process_wait(uint64_t pid, registers_t* regs){
-	processes[curr_process].wait_condition = pid;
-	processes[curr_process].status = PROCESS_WAITPID;
+	process_t process = processes[curr_process];
+	process.sch_info.wait_type = WAIT_PID;
+	process.sch_info.wait_condition = pid;
+	process.status = PROCESS_WAIT;
 	schedule(regs);
 }
 uint64_t read_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
@@ -115,7 +128,7 @@ uint64_t read(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	if(count > size)
 		count = size;
 	descriptor->buffer_seek = seek+count;
-	memcpy(src_buffer,buffer,count);
+	memcpy(buffer,src_buffer,count);
 	return count;
 }
 uint64_t write(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
@@ -130,7 +143,7 @@ uint64_t write(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
 	if(count > size)
 		count = size;
 	descriptor->buffer_seek = dst_seek+count;
-	memcpy(buffer,dst_buffer,count);
+	memcpy(dst_buffer,buffer,count);
 	return count;
 }
 uint64_t write_screen(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){
@@ -237,11 +250,11 @@ uint64_t find_slot(){
 	return slot;
 }
 uint64_t fork_process(uint64_t parent, registers_t* regs){
-	memcpy(regs,&processes[parent].regs,sizeof(registers_t));
+	memcpy(&processes[parent].regs,regs,sizeof(registers_t));
 	uint64_t child = find_slot();
 	if(child == 0)
 		return 0;
-	memcpy(&processes[parent],&processes[child],sizeof(process_t));
+	memcpy(&processes[child],&processes[parent],sizeof(process_t));
 	processes[parent].regs.rax = child;
 	regs->rax = child;
 	processes[child].regs.rax = 0;
@@ -315,7 +328,7 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 		for(uint64_t i = 0; i < argc; i++){
 			char* str = argv[i];
 			uint64_t count = strlen(str);
-			memcpy(str,&dst[start],count);
+			memcpy(&dst[start],str,count);
 			dst_argv[i] = args_page+start;
 			start += count+1; // Leave space for null terminator
 		}
@@ -326,7 +339,7 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 		for(uint64_t i = 0; i < envc; i++){
 			char* str = envp[i];
 			uint64_t count = strlen(str);
-			memcpy(str,&dst[start],count);
+			memcpy(&dst[start],str,count);
 			dst_argv[i+env_start] = args_page+start;
 			start += count+1; // Leave space for null terminator
 		}

@@ -1,6 +1,6 @@
 #include <utils.h>
 
-void memcpy(uint8_t* src, uint8_t* dst, uint64_t count){
+void memcpy(uint8_t* dst, uint8_t* src, uint64_t count){
 	for(uint64_t i = 0; i < count; i++){
 		dst[i] = src[i];
 	}

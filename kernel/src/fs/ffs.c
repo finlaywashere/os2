@@ -50,7 +50,7 @@ uint8_t ffs_create_file(fs_node_t* dir, char* name, uint16_t flags, uint16_t typ
 	entry->flags = flags;
 	entry->type = type;
 	uint64_t len = strlen(name);
-	memcpy(name,entry->name,len);
+	memcpy(entry->name,name,len);
 	entry->inode = (((uint64_t)((uint8_t)(dir->inode >> 56))) << 56) | sector; // Set disk number and start sector as inode
 	uint64_t entries = dir->dir_entries(dir);
 	dir->write_dir(dir,entries*sizeof(ffs_entry_t),sizeof(ffs_entry_t), entry);
@@ -74,7 +74,7 @@ uint8_t ffs_read_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t
 		
 		sector = ffs[fs_index].chain_blocks[cb_index].next_sector[cb_pos];
 	}
-	memcpy((uint8_t*)(((uint64_t)tmp_buffer)+offset%512),buffer,length);
+	memcpy(buffer,(uint8_t*)(((uint64_t)tmp_buffer)+offset%512),length);
 	kfree_p(tmp_buffer,tmp_length);
 }
 
@@ -84,7 +84,7 @@ uint8_t ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 	ffs_read_file(dir,0,dir->length, (uint8_t*) entries);
 	for(uint64_t i = 0; i < entry_count; i++){
 		buffer[i].flags = entries[i].permissions;
-		memcpy(entries[i].name,buffer[i].name,20); // Copy name
+		memcpy(buffer[i].name,entries[i].name,20); // Copy name
 		buffer[i].type = entries[i].type;
 		buffer[i].inode = (((uint64_t) (dir->inode>>56)) << 56) | entries[i].start_sector; // First 8 bits of inode is the fs identifier (unique to this instance of the kernel)
 		buffer[i].creation_time = entries[i].creation_date;
@@ -105,7 +105,7 @@ uint8_t ffs_read_dir(fs_node_t* dir, fs_node_t* buffer){
 uint8_t ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_t* buffer){
 	uint64_t file_length = file->length/512 + (file->length % 512 > 0 ? 1 : 0);
 	uint8_t* new_buffer = (uint8_t*) kmalloc_p(file_length*512);
-	memcpy(buffer,new_buffer,length);
+	memcpy(new_buffer,buffer,length);
 	signed long size_diff = (file->length-offset-length) * -1;
 	if(size_diff < 0)
 		size_diff = 0;
@@ -162,7 +162,7 @@ uint8_t ffs_write_file(fs_node_t* file, uint64_t offset, uint64_t length, uint8_
 			uint8_t* tmp_buffer = (uint8_t*) kmalloc_p(512); // Allocate 512 byte temporary buffer
 			
 			read_disk(fs_index, blocks[i], 1, tmp_buffer);
-			memcpy(new_buffer,(uint8_t*) (((uint64_t)tmp_buffer)+offset%512),512-offset%512);
+			memcpy((uint8_t*) (((uint64_t)tmp_buffer)+offset%512),new_buffer,512-offset%512);
 			write_disk(fs_index, blocks[i], 1, tmp_buffer);
 			
 			kfree_p((uint64_t) tmp_buffer, 512);
@@ -174,7 +174,7 @@ uint8_t ffs_write_dir(fs_node_t* file, uint64_t offset, uint64_t count, fs_node_
 	uint64_t actual_size = num_entries*sizeof(ffs_entry_t);
 	ffs_entry_t* entries = (ffs_entry_t*) kmalloc_p(actual_size);
 	for(uint64_t i = 0; i < num_entries; i++){
-		memcpy(&buffer[i].name,&entries[i].name,20); // Copy name
+		memcpy(&entries[i].name,&buffer[i].name,20); // Copy name
 		entries[i].length = buffer[i].length;
 		entries[i].start_sector = buffer[i].inode & 0x00FFFFFFFFFFFFFF;
 		entries[i].type = buffer[i].type;

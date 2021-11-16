@@ -11,21 +11,21 @@ uint32_t __attribute__((noinline)) cluster_to_sector(uint32_t cluster){
 	return ((cluster - 2) * fat_bpb->bpb.sectors_per_cluster) + first_sector;
 }
 uint32_t get_next_cluster(uint32_t cluster){
-	uint32_t fat[fat_bpb->bpb.bytes_per_sector];
+	uint8_t fat[fat_bpb->bpb.bytes_per_sector];
 	uint32_t fat_offset = cluster * 4;
 	uint32_t fat_sector = partition_sector + fat_bpb->bpb.reserved_sectors + (fat_offset / fat_bpb->bpb.bytes_per_sector);
 	uint32_t ent_offset = fat_offset % fat_bpb->bpb.bytes_per_sector;
 
 	read_disk(fat_root_disk >> 8,fat_sector,1,fat);
 
-	uint32_t value = fat[ent_offset] & 0x0FFFFFFF;
+	uint32_t value = *((uint32_t*) &fat[ent_offset]) & 0x0FFFFFFF;
 	return value;
 }
 uint64_t __attribute__ ((noinline)) num_clusters(uint32_t first_cluster){
 	uint32_t first_sector = cluster_to_sector(first_cluster);
 	uint32_t sectors_per_cluster = fat_bpb->bpb.sectors_per_cluster;
 	uint32_t bytes_per_sector = fat_bpb->bpb.bytes_per_sector;
-	uint64_t cluster_count = 0;
+	uint64_t cluster_count = 1;
 	uint32_t cluster = first_cluster;
 	while(1){
 		uint32_t tmp = get_next_cluster(cluster);

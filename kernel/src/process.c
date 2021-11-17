@@ -21,38 +21,38 @@ uint64_t get_curr_process(){
 void schedule(registers_t* regs){
 	if(curr_max_process == 0)
 		return; // There are no processes to be scheduled
-	process_t process = processes[curr_process];
+	process_t *process = &processes[curr_process];
 	// Save the registers from the current interrupt to the current process' state
-	memcpy(&process.regs,regs,sizeof(registers_t));
-	process.page_table = (uint64_t) get_curr_page_directory();
+	memcpy(&process->regs,regs,sizeof(registers_t));
+	process->page_table = (uint64_t) get_curr_page_directory();
 	// Mark the current process as no longer running if its not already been changed
-	if(process.status == PROCESS_RUNNING)
-		process.status = PROCESS_READY;
+	if(process->status == PROCESS_RUNNING)
+		process->status = PROCESS_READY;
 	// Go to the next process
 	curr_process++;
-	process = processes[curr_process];
+	process = &processes[curr_process];
 	// We may need to loop through all the processes to find the next one
 	// so, the looped variable marks whether or not we have already hit the
 	// max process and gone back around. This prevents infinite loops
 	int looped = 0;
-	if(process.status == PROCESS_WAIT){
-		scheduler_info_t sinfo = process.sch_info;
+	if(process->status == PROCESS_WAIT){
+		scheduler_info_t sinfo = process->sch_info;
 		if(sinfo.wait_type == WAIT_PID){
 			if(processes[sinfo.wait_condition].status == PROCESS_DEAD){
-				process.status = PROCESS_READY; // If the process it is waiting for is dead then resume
+				process->status = PROCESS_READY; // If the process it is waiting for is dead then resume
 			}
 		}
 	}
 	// Loop until we find a process thats ready to execute
-	while(process.status != PROCESS_READY){
+	while(process->status != PROCESS_READY){
 		// Increment the current pid, the loop will exit when we find a valid one
 		curr_process++;
-		process = processes[curr_process];
-		if(process.status == PROCESS_WAIT){
-			scheduler_info_t sinfo = process.sch_info;
+		process = &processes[curr_process];
+		if(process->status == PROCESS_WAIT){
+			scheduler_info_t sinfo = process->sch_info;
 			if(sinfo.wait_type == WAIT_PID){
 				if(processes[sinfo.wait_condition].status == PROCESS_DEAD){
-					process.status = PROCESS_READY; // If the process it is waiting for is dead then resume
+					process->status = PROCESS_READY; // If the process it is waiting for is dead then resume
 				}
 			}
 		}
@@ -61,7 +61,7 @@ void schedule(registers_t* regs){
 			curr_process = 1;
 			// Set looped so that this if will never execute again during this interrupt
 			looped = 1;
-			process = processes[curr_process];
+			process = &processes[curr_process];
 		}else if(curr_process >= MAX_PROCESS_COUNT){
 			// No processes are available so switch to the kernel process
 			curr_process = 0;
@@ -70,13 +70,13 @@ void schedule(registers_t* regs){
 	}
 	// Now the current PID is the one that will be running after the interrupt
 	// Mark the current PID as running
-	process.status = PROCESS_RUNNING;
+	process->status = PROCESS_RUNNING;
 	// Set the rsp for ring 0 in the TSS as this process' shadow stack to prevent stack collisions in the kernel
-	tss_set_rsp(process.shadow_stack);
+	tss_set_rsp(process->shadow_stack);
 	// Copy the new process' saved state to the registers that will be set before executing the new process
-	memcpy(regs,&process.regs,sizeof(registers_t));
+	memcpy(regs,&process->regs,sizeof(registers_t));
 	// Change the page directory to the one where the new process is mapped
-	set_page_directory(process.page_table);
+	set_page_directory(process->page_table);
 }
 void process_wait(uint64_t pid, registers_t* regs){
 	process_t process = processes[curr_process];

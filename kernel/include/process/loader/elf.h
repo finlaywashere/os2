@@ -8,7 +8,7 @@
 #include <utils.h>
 #include <mem/vmm.h>
 #include <arch/x86_64/idt.h>
-#include <safety.h>
+#include <process/safety.h>
 
 #define ELF_SEGMENT_NULL 0
 #define ELF_SEGMENT_LOAD 1

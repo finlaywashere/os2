@@ -31,12 +31,23 @@
 
 #define MODE_WRITE 1
 
+#define HANDLER_ERROR 1
+#define HANDLER_TIMER 2
+
+
 struct scheduler_info{
 	uint8_t priority;
 	uint8_t wait_type;
 	uint64_t wait_condition;
 };
 typedef struct scheduler_info scheduler_info_t;
+
+struct signal_handler{
+	uint64_t handler;
+	uint64_t flags;
+	uint64_t condition;
+};
+typedef struct signal_handler signal_handler_t;
 
 struct descriptor{
 	uint8_t flags;
@@ -65,7 +76,7 @@ struct process{
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
 	fs_node_t files[MAX_FILE_COUNT];
 	scheduler_info_t sch_info;
-	uint64_t signal_handlers[MAX_SIGNALS];
+	signal_handler_t signal_handlers[MAX_SIGNALS];
 };
 
 typedef struct process process_t;
@@ -86,4 +97,5 @@ descriptor_t* get_descriptor(uint64_t id);
 fs_node_t* get_descriptor_file(uint64_t id);
 void close_file_descriptor(uint64_t id);
 void process_wait(uint64_t pid, registers_t* regs);
+int process_error(registers_t *regs);
 #endif

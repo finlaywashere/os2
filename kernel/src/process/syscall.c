@@ -1,4 +1,5 @@
-#include <syscall.h>
+#include <process/syscall.h>
+#include <process/signal.h>
 
 syscall_t* handlers;
 
@@ -337,7 +338,24 @@ void syscall_wait(registers_t* regs){
 	regs->rax = 0;
 	process_wait(pid, regs);
 }
-
+void syscall_signal(registers_t* regs){
+	
+}
+void syscall_register_signal(registers_t* regs){
+	uint64_t address = regs->rbx;
+	if(address_safety(address)){
+		regs->rax = -1;
+		return;
+	}
+	uint64_t index = regs->rcx;
+	uint64_t flags = regs->rdx;
+	if(value_safety(index,0,MAX_SIGNALS)){
+		regs->rax = -1;
+		return;
+	}
+	uint64_t condition = regs->r8;
+	regs->rax = register_signal(address,index,flags,condition);
+}
 void syscall(registers_t* regs){
 	asm volatile("cli");
 	if(regs->rax > 63 || regs -> rax < 0){
@@ -383,5 +401,7 @@ void init_syscalls(){
 	register_syscall(27,&syscall_chdir);
 	register_syscall(28,&syscall_unlink);
 	register_syscall(29,&syscall_wait);
+	register_syscall(30,&syscall_signal);
+	register_syscall(31,&syscall_register_signal);
 	isr_register_handler(80, &syscall);
 }

@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <utils.h>
 #include <arch/x86_64/idt.h>
-#include <process.h>
+#include <process/process.h>
 
 void init_pit();
 void pit_count(registers_t* regs);

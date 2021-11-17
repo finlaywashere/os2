@@ -1,5 +1,5 @@
 #include <arch/x86_64/idt.h>
-#include <process.h>
+#include <process/process.h>
 
 idt_t* idt;
 
@@ -96,7 +96,11 @@ void isr_handler(registers_t regs){
 	}
 	outb(0x20,0x20); // EOI
 	if(regs.interrupt < 32){
-		log_error("\nReceived error 0x");
+		// Error occurred!
+		if(!process_error(&regs)){
+			return;
+		}
+		log_error("\nKernel error 0x");
 		log_error_num(regs.interrupt, 16);
 		log_error("!\nProcess: ");
 		log_error_num(get_curr_process(),10);

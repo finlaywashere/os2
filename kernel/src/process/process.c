@@ -1,4 +1,5 @@
-#include <process.h>
+#include <process/process.h>
+#include <process/signal.h>
 
 uint64_t curr_max_process = 0;
 uint64_t curr_process = 0;
@@ -77,6 +78,38 @@ void schedule(registers_t* regs){
 	memcpy(regs,&process->regs,sizeof(registers_t));
 	// Change the page directory to the one where the new process is mapped
 	set_page_directory(process->page_table);
+}
+int process_error(registers_t *regs){
+	if(curr_process == 0)
+		return 1;
+	
+	int signal = get_error_signal();
+	if((signed int) signal < 0){
+		log_error("Process #");
+		log_error_num(curr_process,10);
+		log_error(" encountered an error and has been killed!\n");
+		log_error("Error code 0x");
+		log_error_num(regs->error,16);
+		log_error("!\n");
+		// Kill process and schedule new one in its place
+		kill_process(curr_process);
+		schedule(regs);
+		return 0;
+	}
+	uint64_t address = get_process()->signal_handlers[signal].handler;
+
+	// error code from regs
+	uint64_t error = regs->error;
+	uint64_t cr2 = regs->cr2;
+	uint64_t rip = regs->rip;
+	
+	regs->rip = address;
+	
+	regs->rdi = error;
+	regs->rsi = rip;
+	regs->rdx = cr2;
+
+	return 0;
 }
 void process_wait(uint64_t pid, registers_t* regs){
 	process_t process = processes[curr_process];

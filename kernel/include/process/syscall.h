@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <arch/x86_64/tty.h>
 #include <arch/x86_64/idt.h>
-#include <process.h>
-#include <safety.h>
+#include <process/process.h>
+#include <process/safety.h>
 #include <fs/fs.h>
 #include <kernel.h>
 

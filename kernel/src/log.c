@@ -8,10 +8,10 @@ void log_error(char* message){
 }
 void log_error_num(uint64_t num, uint8_t base){
 	uint64_t len = numlen(num,base);
-        char* buf = (char*) kmalloc_p(len);
-        int_to_str(buf,num,base);
-        log_error(buf);
-        kfree_p((void*) buf,len);
+	char* buf = (char*) kmalloc_p(len);
+	int_to_str(buf,num,base);
+	log_error(buf);
+	kfree_p((void*) buf,len);
 }
 void log_debug(char* message){
 	log_debugl(message,strlen(message));

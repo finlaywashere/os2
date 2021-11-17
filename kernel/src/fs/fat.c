@@ -86,16 +86,19 @@ uint8_t fat_read_dir(fs_node_t* file, fs_node_t* buffer){
 		if(entries[i].name[0] == 0x0 || entries[i].attributes == 0xF) continue;
 		int pos = 0;
 		for(int i2 = 0; i2 < 8; i2++){
-			if(entries[i].name[i2] == ' ') break;
-			buffer[index].name[pos] = entries[i].name[i2] + 32;
+			char c = entries[i].name[i2];
+			if(c == ' ') break;
+			buffer[index].name[pos] = c + 32;
 			pos++;
 		}
-		buffer[index].name[pos] = '.';
-		pos++;
-		for(int i2 = 0; i2 < 3; i2++){
-			if(entries[i].ext[i2] == ' ') break;
-			buffer[index].name[pos] = entries[i].ext[i2] + 32;
+		if(!(entries[i].attributes & 0x10)){
+			buffer[index].name[pos] = '.';
 			pos++;
+			for(int i2 = 0; i2 < 3; i2++){
+				if(entries[i].ext[i2] == ' ') break;
+				buffer[index].name[pos] = entries[i].ext[i2] + 32;
+				pos++;
+			}
 		}
 		buffer[index].name[pos] = 0x0;
 		buffer[index].type = entries[i].attributes & DIRECTORY ? 0 : 1;

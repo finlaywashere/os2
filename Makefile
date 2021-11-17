@@ -4,13 +4,14 @@ QEMU = qemu-system-x86_64
 
 QEMUFLAGS = --no-reboot \
 --no-shutdown \
--machine type=q35,accel=kvm \
--cpu host \
+-machine type=q35 \
 -vga cirrus \
 -m size=1024 \
 -drive id=disk,file=disk.iso,if=none \
 -device ahci,id=ahci  \
--device ide-hd,drive=disk,bus=ahci.0
+-device ide-hd,drive=disk,bus=ahci.0 \
+-machine accel=kvm \
+-cpu host
 
 TRACE = -d guest_errors,unimp
 

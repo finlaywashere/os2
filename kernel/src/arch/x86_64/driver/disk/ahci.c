@@ -117,7 +117,7 @@ void ahci_probe_port(){
 	for(int i = 0; i < 32; i++){
 		if(pi & (1 << i)){
 			hba_port_t* port = &ahci_mem->ports[i];
-			port->ie = -1;
+			port->ie = 0;
 			port->cmd |= 1;
 			int type = ahci_get_type(port);
 			if(type == AHCI_DEV_SATA){

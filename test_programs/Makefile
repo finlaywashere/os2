@@ -9,8 +9,9 @@ build:
 	@export NAME=$(NAME) && cd shell/ && $(MAKE) && $(MAKE) copy
 	@export NAME=$(NAME) && cd coreutils/ && $(MAKE) && $(MAKE) copy
 iso:
+	mkdir $(OUTPUT)/bin/
 	for file in sysroot/* ; do \
-        cp $$file $(OUTPUT) ; \
+        cp $$file $(OUTPUT)/bin/ ; \
 		echo $$file ; \
     done
 clean:

@@ -321,9 +321,6 @@ void syscall_chdir(registers_t* regs){
 		regs->rax = -1;
 		return;
 	}
-	if(process->current_directory != process->root_directory){
-		kfree(process->current_directory,sizeof(fs_node_t));
-	}
 	process->current_directory = new_dir;
 	regs->rax = 1;
 	return;

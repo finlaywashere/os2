@@ -106,12 +106,14 @@ uint8_t fat_read_dir(fs_node_t* file, fs_node_t* buffer){
         buffer[index].parent = file;
         buffer[index].exists = 1;
 		if(!(entries[i].attributes & 0x10)){
-			buffer[index].name[pos] = '.';
-			pos++;
-			for(int i2 = 0; i2 < 3; i2++){
-				if(entries[i].ext[i2] == ' ') break;
-				buffer[index].name[pos] = entries[i].ext[i2] + 32;
+			if(entries[i].ext[0] != 0x0 && entries[i].ext[0] != ' '){
+				buffer[index].name[pos] = '.';
 				pos++;
+				for(int i2 = 0; i2 < 3; i2++){
+					if(entries[i].ext[i2] == ' ') break;
+					buffer[index].name[pos] = entries[i].ext[i2] + 32;
+					pos++;
+				}
 			}
 			buffer[index].length = entries[i].size;
 		}else{

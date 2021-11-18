@@ -2,6 +2,8 @@ NAME = testprograms-$(OSNAME)
 
 OUTPUT = ../disk/
 
+INIT = shell.o
+
 .PHONY: clean setup iso
 
 build:
@@ -9,10 +11,13 @@ build:
 	@export NAME=$(NAME) && cd shell/ && $(MAKE) && $(MAKE) copy
 	@export NAME=$(NAME) && cd coreutils/ && $(MAKE) && $(MAKE) copy
 iso:
-	mkdir $(OUTPUT)/bin/
+	mkdir -p $(OUTPUT)/{bin,sbin}
+	cp sysroot/$(INIT) $(OUTPUT)/sbin/init
 	for file in sysroot/* ; do \
-        cp $$file $(OUTPUT)/bin/ ; \
-		echo $$file ; \
+		if [ "$$(basename $$file)" != "$(INIT)" ]; then \
+	        cp $$file $(OUTPUT)/bin/$$(basename $$file .o) ; \
+			echo $$file ; \
+		fi \
     done
 clean:
 	rm -rf sysroot/

@@ -27,6 +27,7 @@ build: install-headers
 	./mkdisk.sh
 	sudo mount -o loop,offset=66560,umask=000 disk.iso disk/
 	@export NAME=$(NAME) && cd test_programs/ && $(MAKE) iso
+	cp -r data/* disk/
 	sudo umount disk/
 
 clean:

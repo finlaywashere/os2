@@ -12,8 +12,6 @@ OUTPUT = ../sysroot/
 
 OBJS = src/test.o
 
-DATA_FILES = data/test.txt
-
 LINK_LIST=\
 $(LDFLAGS) \
 $(OBJS) \
@@ -31,9 +29,6 @@ testprograms: $(OBJS)
 .asm.o:
 	$(AS) $(AFLAGS) $^ -o $@
 copy:
-	for file in $(DATA_FILES) ; do \
-        cp $$file $(OUTPUT) ; \
-    done
 	for file in $(OBJS) ; do \
 		cp $$file $(OUTPUT) ; \
 	done

@@ -36,24 +36,15 @@ void schedule(registers_t* regs){
 	// so, the looped variable marks whether or not we have already hit the
 	// max process and gone back around. This prevents infinite loops
 	int looped = 0;
-	if(process->status == PROCESS_WAIT){
-		scheduler_info_t sinfo = process->sch_info;
-		if(sinfo.wait_type == WAIT_PID){
-			if(processes[sinfo.wait_condition].status == PROCESS_DEAD){
-				process->status = PROCESS_READY; // If the process it is waiting for is dead then resume
-			}
-		}
-	}
 	// Loop until we find a process thats ready to execute
 	while(process->status != PROCESS_READY){
 		// Increment the current pid, the loop will exit when we find a valid one
-		curr_process++;
-		process = &processes[curr_process];
 		if(process->status == PROCESS_WAIT){
 			scheduler_info_t sinfo = process->sch_info;
 			if(sinfo.wait_type == WAIT_PID){
 				if(processes[sinfo.wait_condition].status == PROCESS_DEAD){
 					process->status = PROCESS_READY; // If the process it is waiting for is dead then resume
+					break;
 				}
 			}
 		}
@@ -67,6 +58,9 @@ void schedule(registers_t* regs){
 			// No processes are available so switch to the kernel process
 			curr_process = 0;
 			break;
+		}else{
+			curr_process++;
+	        process = &processes[curr_process];
 		}
 	}
 	// Now the current PID is the one that will be running after the interrupt
@@ -112,10 +106,10 @@ int process_error(registers_t *regs){
 	return 0;
 }
 void process_wait(uint64_t pid, registers_t* regs){
-	process_t process = processes[curr_process];
-	process.sch_info.wait_type = WAIT_PID;
-	process.sch_info.wait_condition = pid;
-	process.status = PROCESS_WAIT;
+	process_t *process = &processes[curr_process];
+	process->sch_info.wait_type = WAIT_PID;
+	process->sch_info.wait_condition = pid;
+	process->status = PROCESS_WAIT;
 	schedule(regs);
 }
 uint64_t read_file(descriptor_t *descriptor, uint8_t* buffer, uint64_t size){

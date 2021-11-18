@@ -88,9 +88,23 @@ uint8_t fat_read_dir(fs_node_t* file, fs_node_t* buffer){
 		for(int i2 = 0; i2 < 8; i2++){
 			char c = entries[i].name[i2];
 			if(c == ' ') break;
-			buffer[index].name[pos] = c + 32;
+			if(c >= 'A' && c <= 'Z')
+				buffer[index].name[pos] = c + 32;
+			else
+				buffer[index].name[pos] = c;
 			pos++;
 		}
+		buffer[index].name[pos] = 0x0;
+        buffer[index].type = entries[i].attributes & DIRECTORY ? 0 : 1;
+        buffer[index].inode = (((uint64_t) (file->inode>>48)) << 48) | entries[i].cluster_high << 16 | entries[i].cluster_low; // First 8 bits of inode is the fs identifier (unique to this instance of the kernel)
+        buffer[index].read_file = &fat_read_file;
+        buffer[index].write_file = &fat_write_file;
+        buffer[index].read_dir = &fat_read_dir;
+        buffer[index].dir_entries = &fat_dir_entries;
+        buffer[index].write_dir = &fat_write_dir;
+        buffer[index].create_file = &fat_create_file;
+        buffer[index].parent = file;
+        buffer[index].exists = 1;
 		if(!(entries[i].attributes & 0x10)){
 			buffer[index].name[pos] = '.';
 			pos++;
@@ -99,19 +113,11 @@ uint8_t fat_read_dir(fs_node_t* file, fs_node_t* buffer){
 				buffer[index].name[pos] = entries[i].ext[i2] + 32;
 				pos++;
 			}
+			buffer[index].length = entries[i].size;
+		}else{
+			uint64_t length = fat_dir_entries(&buffer[index]) * sizeof(fat_dir_entry_t) * 2;
+			buffer[index].length = length;
 		}
-		buffer[index].name[pos] = 0x0;
-		buffer[index].type = entries[i].attributes & DIRECTORY ? 0 : 1;
-		buffer[index].inode = (((uint64_t) (file->inode>>48)) << 48) | entries[i].cluster_high << 16 | entries[i].cluster_low; // First 8 bits of inode is the fs identifier (unique to this instance of the kernel)
-		buffer[index].length = entries[i].size;
-		buffer[index].read_file = &fat_read_file;
-		buffer[index].write_file = &fat_write_file;
-		buffer[index].read_dir = &fat_read_dir;
-		buffer[index].dir_entries = &fat_dir_entries;
-		buffer[index].write_dir = &fat_write_dir;
-		buffer[index].create_file = &fat_create_file;
-		buffer[index].parent = file;
-		buffer[index].exists = 1;
 		index++;
 	}
 }

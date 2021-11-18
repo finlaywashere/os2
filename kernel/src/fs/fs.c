@@ -28,7 +28,7 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 			curr = root_directory;
 			continue;
 		}
-		if(name[i] == '/'){
+		if(name[i] == '/' && i != len-1){
 			char segment[21];
 			for(uint64_t j = last_slash; j <= 20; j++){
 				if(j < i)
@@ -40,8 +40,14 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 			fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*dir_length);
 			curr->read_dir(curr,buffer);
 			if(strcmp(segment, ".")){
-                continue;
+				last_slash = i + 1;
+				continue;
             }
+			if(strcmp(segment, "..")){
+				curr = curr->parent;
+				last_slash = i + 1;
+				continue;
+			}
 			for(uint64_t j = 0; j < dir_length; j++){
 				if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){
 					curr = &buffer[j];
@@ -51,14 +57,30 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 					}
 				}
 			}
+			last_slash = i + 1;
 		}
 		if(i == len-1){
 			char segment[21];
+			int last_slash2 = 0;
+			int last_char = 0;
 			for(uint64_t j = last_slash; j <= 20; j++){
-				if(j <= i)
+				if(j <= i){
 					segment[j-last_slash] = name[j];
+					if(name[j] != '/')
+						last_char = j-last_slash;
+					else
+						last_slash2 = j-last_slash;
+				}
 				else
 					segment[j-last_slash] = 0;
+			}
+			if(segment[0] == 0x0){
+				memcpy((uint8_t*) dst_buffer,(uint8_t*) curr,sizeof(fs_node_t));
+				return;
+			}
+			if(last_slash2 > last_char){
+				// Segment ends with slash
+				segment[last_slash2] = 0x0;
 			}
            	uint64_t dir_length = curr->dir_entries(curr);
 			fs_node_t* buffer = (fs_node_t*) kmalloc_p(sizeof(fs_node_t)*dir_length);
@@ -67,6 +89,11 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 				memcpy((uint8_t*) dst_buffer,(uint8_t*) curr,sizeof(fs_node_t));
 				kfree_p(buffer,sizeof(fs_node_t)*dir_length);
 				return;
+			}
+			if(strcmp(segment, "..")){
+				memcpy((uint8_t*) dst_buffer,(uint8_t*) curr->parent,sizeof(fs_node_t));
+                kfree_p(buffer,sizeof(fs_node_t)*dir_length);
+                return;
 			}
 			for(uint64_t j = 0; j < dir_length; j++){
 				if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){

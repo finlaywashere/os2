@@ -5,10 +5,18 @@
 
 int main(int argc, char** argv){
 	// Directory is hard coded as . for now
-	FILE* dir = fopen(".", "r");
+	FILE* dir;
+	if(argc > 1){
+		dir = fopen(argv[1], "r");
+	}else{
+		dir = fopen(".", "r");
+	}
+	if(dir->id == 0){
+		printf("File not found!\n");
+		exit(1);
+	}
 	file_info_t* buffer = (file_info_t*) malloc(sizeof(file_info_t*)*COUNT);
 	int actual_count = readdir(dir,COUNT,buffer);
-	printf("Files in root directory:\n\n");
 	for(int i = 0; i < actual_count; i++){
 		printf(buffer[i].name);
 		printf("\n");

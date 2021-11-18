@@ -1,10 +1,12 @@
 #include <fs/fs.h>
 #include <utils.h>
+#include <fs/devfs.h>
 
 fs_node_t* root_directory;
 
 void init_filesystems(){
 	init_fat();
+	init_devfs();
 }
 uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir){
 	return create_file(name,flags,0,dir);
@@ -13,6 +15,9 @@ uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir){
 	if(dir->type != 0)
 		return 1;
 	return dir->create_file(dir,name,flags,type);
+}
+uint8_t mount(fs_node_t* folder, fs_node_t* mount){
+	//TODO: Implement FS mounting
 }
 void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 	if(name[0] == '/' && name[1] == 0x0){
@@ -45,6 +50,11 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
             }
 			if(strcmp(segment, "..")){
 				curr = curr->parent;
+				last_slash = i + 1;
+				continue;
+			}
+			if(curr == root_directory && strcmp(segment, "dev")){
+				curr = get_devfs();
 				last_slash = i + 1;
 				continue;
 			}
@@ -94,6 +104,11 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 				memcpy((uint8_t*) dst_buffer,(uint8_t*) curr->parent,sizeof(fs_node_t));
                 kfree_p(buffer,sizeof(fs_node_t)*dir_length);
                 return;
+			}
+			if(strcmp(segment, "dev")){
+				memcpy((uint8_t*) dst_buffer,(uint8_t*) get_devfs(),sizeof(fs_node_t));
+				kfree_p(buffer,sizeof(fs_node_t)*dir_length);
+				return;
 			}
 			for(uint64_t j = 0; j < dir_length; j++){
 				if(memcmp((uint8_t*) segment, (uint8_t*) buffer[j].name, 20)){

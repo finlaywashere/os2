@@ -19,6 +19,7 @@ src/utils.o \
 src/log.o \
 src/fs/fs.o \
 src/fs/ffs.o \
+src/fs/devfs.o \
 src/process/loader/elf.o \
 src/process/process.o \
 src/process/syscall.o \

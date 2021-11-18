@@ -43,13 +43,13 @@ install-headers:
 	rm -rf sysroot/
 	mkdir -p sysroot/usr/include/
 	cp -r libc/include/* sysroot/usr/include/
-qemu: build
+qemu:
 	$(QEMU) $(QEMUFLAGS) -monitor stdio #--enable-kvm
 gdb:
 	$(QEMU) $(QEMUFLAGS) -monitor stdio -s -S #--enable-kvm
-debug: build
+debug:
 	$(QEMU) $(QEMUFLAGS) -d int
-gdbd: build
+gdbd:
 	$(QEMU) $(QEMUFLAGS) -d int -s -S
-gdbe: build
+gdbe:
 	$(QEMU) $(QEMUFLAGS) $(TRACE) -s -S

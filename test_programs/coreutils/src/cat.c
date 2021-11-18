@@ -19,7 +19,6 @@ int main(int argc, char** argv){
 	char* buffer = (char*) malloc(length);
 	fread(buffer,1,length,file);
 	fclose(file);
-	puts("Contents of /test.txt");
 	printf(buffer);
-	puts("\n");
+	printf("\n");
 }

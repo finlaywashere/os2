@@ -4,6 +4,46 @@
 #include <sys/wait.h>
 #include <string.h>
 
+char* append(char* start, char* end){
+	size_t s_len = strlen(start);
+	size_t e_len = strlen(end);
+	size_t len = s_len + e_len + 1;
+	char* buffer = (char*) malloc(len);
+	for(size_t i = 0; i < len; i++){
+		if(i < s_len){
+			buffer[i] = start[i];
+		}else if(i < len-1){
+			buffer[i] = end[i-s_len];
+		}else{
+			buffer[i] = 0x0;
+		}
+	}
+	return buffer;
+}
+
+char* find_file(char* name){
+	FILE* fd = fopen(name,"r");
+	if(fd->id){
+		fclose(fd);
+		return name;
+	}
+	char* buffer = append("/bin/",name);
+	fd = fopen(buffer,"r");
+	if(fd->id){
+        fclose(fd);
+        return buffer;
+    }
+	free(buffer);
+	buffer = append("/sbin/",name);
+    fd = fopen(buffer,"r");
+    if(fd->id){
+        fclose(fd);
+        return buffer;
+    }
+	printf("File not found!");
+	exit(1);
+}
+
 void main(){
 	while(1){
 		printf("[FinlayOS]$ ");
@@ -68,15 +108,10 @@ void main(){
 			args[i] = new_buffer;
 			curr += strlen(new_buffer)+1;
 		}
-		FILE* fd = fopen(buffer,"r");
-		if(fd->id == 0){
-			printf("File not found!\n");
-			continue;
-		}
-		fclose(fd);
+		char* filename = find_file(buffer);
 		uint64_t pid = fork(); // Fork and execute new program
 		if(pid == 0){
-			execv(buffer,args);
+			execv(filename,args);
 			// If execution gets here then its not an executable file!
 			printf("Invalid binary!\n");
 			exit(1);

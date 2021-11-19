@@ -62,14 +62,14 @@ void syscall_exec(registers_t* regs){
 	char** argv = (char**) argv_addr;
 	uint64_t argc = 0;
 	while(1){
-		argc++;
-		if(argv[argc+1] == 0x0){
+		if(argv[argc] == 0x0){
 			break;
 		}
 		if(argc > 1000){
 			regs->rax = 0;
 			return;
 		}
+		argc++;
 	}
 	if(usermode_buffer_safety(argv_addr,argc)){
 		regs->rax = 0;

@@ -23,7 +23,7 @@ uint64_t pci_dir_entries(fs_node_t* file){
 		return count;
 	}else if(flags & 4){
 		int bus = file->inode & 0xFF;
-		int device = file->inode & 0xFF00;
+		int device = (file->inode >> 8) & 0xFF;
 		pci_device_t* dev = &pci->busses[bus].devices[device];
 		uint64_t count = 0;
 		for(int i = 0; i < 8; i++){
@@ -36,10 +36,10 @@ uint64_t pci_dir_entries(fs_node_t* file){
 	}
 }
 uint8_t pci_read_file(fs_node_t* file, uint64_t offset, uint64_t count, uint8_t* buffer){
-	uint8_t bus = file->inode & 0xFF;
-	uint8_t device = file->inode & 0xFF00;
-	uint8_t function = file->inode & 0xFF0000;
-	uint8_t id = file->inode >> 24;
+	uint64_t bus = file->inode & 0xFF;
+	uint64_t device = (file->inode >> 8) & 0xFF;
+	uint64_t function = (file->inode >> 16) & 0xFF;
+	uint64_t id = file->inode >> 24;
 	pci_function_t *func = &pci->busses[bus].devices[device].functions[function];
 	if(id == 0){
 		int_to_str(buffer, func->class_code, 10);
@@ -67,10 +67,10 @@ void pci_create_file(fs_node_t* file, char* name, uint64_t inode){
 }
 uint8_t pci_read_dir(fs_node_t* file, fs_node_t* buffer){
 	uint64_t len = pci_dir_entries(file);
-	uint8_t flags = file->inode >> 24;
-	uint8_t bus = file->inode & 0xFF;
-	uint8_t device = file->inode & 0xFF00;
-	uint8_t function = file->inode & 0xFF0000;
+	uint64_t flags = file->inode >> 24;
+	uint64_t bus = file->inode & 0xFF;
+	uint64_t device = (file->inode >> 8) & 0xFF;
+	uint64_t function = (file->inode >> 16) & 0xFF;
 	if(flags & 1){
 		int index = 0;
 		for(int i = 0; i < 256; i++){
@@ -89,7 +89,7 @@ uint8_t pci_read_dir(fs_node_t* file, fs_node_t* buffer){
 		int index = 0;
 		for(int i = 0; i < 32; i++){
 			if(pci->busses[bus].devices[i].exists){
-				buffer[index].inode = i | (4 << 24);
+				buffer[index].inode = bus | (i << 8) | (4 << 24);
 				int_to_str(&buffer[index].name, i, 10);
 				buffer[index].type = 0;
 				buffer[index].read_dir = &pci_read_dir;
@@ -103,7 +103,7 @@ uint8_t pci_read_dir(fs_node_t* file, fs_node_t* buffer){
 		int index = 0;
 		for(int i = 0; i < 8; i++){
 			if(pci->busses[bus].devices[device].functions[i].exists){
-				buffer[index].inode = i | (8 << 24);
+				buffer[index].inode = bus | (device << 8) | (i << 16) | (8 << 24);
 				int_to_str(&buffer[index].name, i, 10);
 				buffer[index].type = 0;
 				buffer[index].read_dir = &pci_read_dir;

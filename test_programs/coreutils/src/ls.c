@@ -18,6 +18,8 @@ int main(int argc, char** argv){
 	file_info_t* buffer = (file_info_t*) malloc(sizeof(file_info_t*)*COUNT);
 	int actual_count = readdir(dir,COUNT,buffer);
 	for(int i = 0; i < actual_count; i++){
+		if(!buffer[i].exists)
+			continue;
 		printf(buffer[i].name);
 		printf("\n");
 	}

@@ -16,7 +16,7 @@ void init_devfs(){
 	devfs_root = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
 	entries = (fs_node_t*) kmalloc_p(sizeof(fs_node_t) * MAX_DEVFS_ENTRIES);
 	devfs_root->name[0] = '/';
-	devfs_root->type = 1;
+	devfs_root->type = 0;
 	devfs_root->dir_entries = &dev_dir_entries;
 	devfs_root->read_dir = &dev_read_dir;
 	devfs_root->exists = 1;

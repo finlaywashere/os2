@@ -40,17 +40,20 @@ struct pci_function{
 	uint8_t interrupt_pin;
 	uint8_t min_grant;
 	uint8_t max_latency;
+	uint8_t exists;
 };
 
 typedef struct pci_function pci_function_t;
 
 struct pci_device{
 	pci_function_t functions[8];
+	uint8_t exists;
 };
 typedef struct pci_device pci_device_t;
 
 struct pci_bus{
 	pci_device_t devices[32];
+	uint8_t exists;
 };
 typedef struct pci_bus pci_bus_t;
 

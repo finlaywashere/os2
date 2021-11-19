@@ -252,15 +252,21 @@ void syscall_readdir(registers_t* regs){
 	file->read_dir(file,k_buffer);
 
 	user_fs_node_t* u_buffer = (user_fs_node_t*) buffer;
+	int index = 0;
 	for(int i = 0; i < count; i++){
 		fs_node_t f = k_buffer[i];
-		u_buffer[i].flags = f.flags;
-		u_buffer[i].type = f.type;
-		u_buffer[i].inode = f.inode;
-		u_buffer[i].creation_time = f.creation_time;
-		u_buffer[i].modification_time = f.modification_time;
-		u_buffer[i].length = f.length;
-		memcpy(&u_buffer[i].name,&f.name,20);
+		if(!f.exists)
+			continue;
+		u_buffer[index].exists = 1;
+		u_buffer[index].flags = f.flags;
+		u_buffer[index].type = f.type;
+		u_buffer[index].inode = f.inode;
+		u_buffer[index].creation_time = f.creation_time;
+		u_buffer[index].modification_time = f.modification_time;
+		u_buffer[index].length = f.length;
+		memcpy(&u_buffer[index].name,&f.name,20);
+
+		index++;
 	}
     regs->rax = count;
 }

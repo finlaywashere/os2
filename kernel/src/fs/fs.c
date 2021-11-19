@@ -6,7 +6,6 @@ fs_node_t* root_directory;
 
 void init_filesystems(){
 	init_fat();
-	init_devfs();
 }
 uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir){
 	return create_file(name,flags,0,dir);
@@ -35,7 +34,7 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 		}
 		if(name[i] == '/' && i != len-1){
 			char segment[21];
-			for(uint64_t j = last_slash; j <= 20; j++){
+			for(uint64_t j = last_slash; j <= last_slash+20; j++){
 				if(j < i)
 					segment[j-last_slash] = name[j];
 				else
@@ -73,7 +72,7 @@ void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent){
 			char segment[21];
 			int last_slash2 = 0;
 			int last_char = 0;
-			for(uint64_t j = last_slash; j <= 20; j++){
+			for(uint64_t j = last_slash; j <= last_slash+20; j++){
 				if(j <= i){
 					segment[j-last_slash] = name[j];
 					if(name[j] != '/')

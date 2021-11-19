@@ -33,6 +33,7 @@ struct user_fs_node{
 	uint64_t creation_time;
 	uint64_t modification_time;
 	uint64_t length; // in bytes
+	uint8_t exists;
 }__attribute__((packed));
 typedef struct user_fs_node user_fs_node_t;
 

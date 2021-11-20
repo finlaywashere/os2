@@ -10,7 +10,7 @@ QEMUFLAGS = --no-reboot \
 -drive id=disk,file=disk.iso,if=none \
 -device ahci,id=ahci  \
 -device ide-hd,drive=disk,bus=ahci.0 \
--device qemu-xhci \
+-usb \
 -machine accel=kvm \
 -cpu host
 

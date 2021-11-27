@@ -40,8 +40,8 @@ char* find_file(char* name){
         fclose(fd);
         return buffer;
     }
-	printf("File not found!");
-	exit(1);
+	printf("File not found!\n");
+	return 0x0;
 }
 
 void main(){
@@ -109,6 +109,8 @@ void main(){
 			curr += strlen(new_buffer)+1;
 		}
 		char* filename = find_file(buffer);
+		if(filename == 0x0)
+			continue;
 		uint64_t pid = fork(); // Fork and execute new program
 		if(pid == 0){
 			execv(filename,args);

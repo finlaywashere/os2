@@ -207,6 +207,10 @@ void syscall_fclose(registers_t* regs){
 	close_file_descriptor(id);
 }
 void syscall_exit(registers_t* regs){
+	uint64_t pid = get_curr_process();
+	if(pid == 1){
+		panic("Error: PID 1 Exited!");
+	}
 	get_process()->regs.rax = regs->rbx;
 	uint64_t curr = get_curr_process();
 	kill_process(curr);

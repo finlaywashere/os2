@@ -107,4 +107,5 @@ _start:
 	add rbx, 56 ; Add 56 bytes (size of 64 bit program header) to rbx and loop again
 	jmp .loop2 ; Continue looping
 .loop2end:
-	jmp rcx ; Kernel start pointer is in rcx, so jump to it
+	mov rbp, 0
+	call rcx ; Kernel start pointer is in rcx, so jump to it

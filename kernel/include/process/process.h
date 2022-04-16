@@ -12,6 +12,8 @@
 #include <fs/fs.h>
 #include <arch/x86_64/driver/keyboard.h>
 
+#define FLAG_KERNEL 1
+
 #define PROCESS_DEAD 0
 #define PROCESS_RUNNING 1
 #define PROCESS_SLEEPING 2
@@ -72,6 +74,7 @@ struct process{
 	fs_node_t* current_directory;
 	uint64_t uid;
 	uint64_t gid;
+	uint64_t flags;
 	uint64_t wait_condition;
 	descriptor_t descriptors[MAX_DESCRIPTOR_COUNT];
 	fs_node_t files[MAX_FILE_COUNT];
@@ -98,4 +101,5 @@ fs_node_t* get_descriptor_file(uint64_t id);
 void close_file_descriptor(uint64_t id);
 void process_wait(uint64_t pid, registers_t* regs);
 int process_error(registers_t *regs);
+int is_kernel();
 #endif

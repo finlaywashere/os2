@@ -104,6 +104,8 @@ uint8_t fat_read_dir(fs_node_t* file, fs_node_t* buffer){
         buffer[index].write_dir = &fat_write_dir;
         buffer[index].create_file = &fat_create_file;
         buffer[index].parent = file;
+		buffer[index].uid = 0;
+		buffer[index].gid = 0;
         buffer[index].exists = 1;
 		if(!(entries[i].attributes & 0x10)){
 			if(entries[i].ext[0] != 0x0 && entries[i].ext[0] != ' '){
@@ -188,9 +190,11 @@ void init_fat(){
 	root->dir_entries = &fat_dir_entries;
 	root->write_dir = &fat_write_dir;
 	root->create_file = &fat_create_file;
+	root->uid = 0;
+	root->gid = 0;
 	root->exists = 1;
 
 	uint64_t entries = fat_dir_entries(root);
 	root->length = entries * sizeof(fat_dir_entry_t);
-	set_root_directory(root);
+	set_true_root(root);
 }

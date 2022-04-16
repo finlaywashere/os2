@@ -15,6 +15,8 @@ struct fs_node{
 	uint64_t creation_time; // Ms since epoch
 	uint64_t modification_time; // Ms since epoch
 	uint64_t length; // In bytes
+	uint64_t uid;
+	uint64_t gid;
 	struct fs_node* parent;
 	uint8_t (*read_file) (struct fs_node *file, uint64_t offset, uint64_t count, uint8_t* buffer);
 	uint8_t (*read_dir) (struct fs_node *file, struct fs_node* buffer);
@@ -42,9 +44,10 @@ typedef struct user_fs_node user_fs_node_t;
 
 void init_filesystems();
 void get_file(char* name, fs_node_t* dst_buffer, fs_node_t* parent);
-void set_root_directory(fs_node_t* root);
 uint8_t mkdir(char* name, uint16_t flags, fs_node_t* dir);
 uint8_t create_file(char* name, uint16_t flags, uint16_t type, fs_node_t* dir);
-fs_node_t* get_root_directory();
+void set_true_root(fs_node_t* root);
+fs_node_t* get_true_root();
+
 #endif
 

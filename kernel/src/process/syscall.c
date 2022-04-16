@@ -79,7 +79,7 @@ void syscall_exec(registers_t* regs){
 		if(usermode_buffer_safety(argv[i],strlen(argv[i]))){
 			regs->rax = 0;
 			return;
-    	}
+		}
 	}
 	uint64_t process = get_curr_process();
 	process_t* process_data = get_process();
@@ -203,7 +203,7 @@ void syscall_fclose(registers_t* regs){
 	if(value_safety(id, 0, get_process()->count)){
 		regs->rax = -1;
 		return;
-    }
+	}
 	close_file_descriptor(id);
 }
 void syscall_exit(registers_t* regs){
@@ -232,18 +232,18 @@ void syscall_rmdir(registers_t* regs){}
 void syscall_rename(registers_t* regs){}
 void syscall_readdir(registers_t* regs){
 	uint64_t buffer_addr = regs->rbx;
-    uint64_t count = regs->rcx;
-    uint64_t descriptor = regs->rdx;
-    if(usermode_buffer_safety(buffer_addr,count)){
-        regs->rax = -1;
-        return;
-    }
-    uint8_t* buffer = (uint8_t*) buffer_addr;
-    process_t* process = get_process();
-    if(value_safety(descriptor, 0, process->count)){
-        regs->rax = -2;
-        return;
-    }
+	uint64_t count = regs->rcx;
+	uint64_t descriptor = regs->rdx;
+	if(usermode_buffer_safety(buffer_addr,count)){
+		regs->rax = -1;
+		return;
+	}
+	uint8_t* buffer = (uint8_t*) buffer_addr;
+	process_t* process = get_process();
+	if(value_safety(descriptor, 0, process->count)){
+		regs->rax = -2;
+		return;
+	}
 	fs_node_t* file = get_descriptor_file(descriptor);
 	if(file->type != 0){
 		regs->rax = -3;
@@ -272,7 +272,7 @@ void syscall_readdir(registers_t* regs){
 
 		index++;
 	}
-    regs->rax = count;
+	regs->rax = count;
 }
 void syscall_readlink(registers_t* regs){}
 void syscall_mkdir(registers_t* regs){
@@ -313,15 +313,34 @@ void syscall_setuid(registers_t* regs){
 void syscall_setgid(registers_t* regs){
 	get_process()->gid = regs->rbx;
 }
-void syscall_chroot(registers_t* regs){}
+void syscall_chroot(registers_t* regs){
+	uint64_t buffer_addr = regs->rbx;
+	char* buffer = (char*) buffer_addr;
+	uint64_t count = strlen(buffer);
+	if(usermode_buffer_safety(buffer_addr,count)){
+		regs->rax = 0;
+		return;
+	}
+	process_t *process = get_process();
+	fs_node_t* new_dir = (fs_node_t*) kmalloc_p(sizeof(fs_node_t));
+	get_file(buffer,new_dir,process->current_directory);
+	if(new_dir->exists == 0){
+		regs->rax = -1;
+		return;
+	}
+
+	process->root_directory = new_dir;
+	regs->rax = 1;
+	return;
+}
 void syscall_chdir(registers_t* regs){
 	uint64_t buffer_addr = regs->rbx;
-    char* buffer = (char*) buffer_addr;
-    uint64_t count = strlen(buffer);
-    if(usermode_buffer_safety(buffer_addr,count)){
-        regs->rax = 0;
-        return;
-    }
+	char* buffer = (char*) buffer_addr;
+	uint64_t count = strlen(buffer);
+	if(usermode_buffer_safety(buffer_addr,count)){
+		regs->rax = 0;
+		return;
+	}
 
 	process_t* process = get_process();
 
@@ -339,9 +358,9 @@ void syscall_unlink(registers_t* regs){}
 void syscall_wait(registers_t* regs){
 	uint64_t pid = regs->rbx;
 	if(value_safety(pid, 0, MAX_PROCESS_COUNT)){
-        regs->rax = -1;
-        return;
-    }
+		regs->rax = -1;
+		return;
+	}
 	regs->rax = 0;
 	process_wait(pid, regs);
 }

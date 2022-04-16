@@ -222,5 +222,5 @@ void init_ffs(){
 	root->create_file = &ffs_create_file;
 	root->exists = 1;
 	ffs->root = root;
-	set_root_directory(root);
+	set_true_root(root);
 }

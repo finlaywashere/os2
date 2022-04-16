@@ -10,7 +10,8 @@ CC = x86_64-elf-fos-gcc
 
 OUTPUT = ../sysroot/
 
-OBJS = src/shell.o
+OBJS = src/shell.o \
+src/rshell.o
 
 DATA_FILES = 
 

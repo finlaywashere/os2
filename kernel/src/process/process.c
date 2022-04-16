@@ -19,6 +19,9 @@ process_t* get_process(){
 uint64_t get_curr_process(){
 	return curr_process;
 }
+int is_kernel(){
+	return curr_max_process == 0;
+}
 void schedule(registers_t* regs){
 	if(curr_max_process == 0)
 		return; // There are no processes to be scheduled
@@ -374,7 +377,7 @@ void create_process_pid_nodesc(uint64_t pid, page_table_t* loaded_data, uint64_t
 
     processes[slot].page_table = loaded_data;
 	if(processes[slot].parent == 0){
-		processes[slot].root_directory = get_root_directory();
+		processes[slot].root_directory = get_true_root();
 		processes[slot].current_directory = processes[slot].root_directory;
 		processes[slot].uid = 0;
 		processes[slot].gid = 0;

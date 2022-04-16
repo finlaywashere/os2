@@ -25,7 +25,8 @@ src/process/process.o \
 src/process/syscall.o \
 src/process/safety.o \
 src/process/signal.o \
-src/fs/fat.o
+src/fs/fat.o \
+src/security/user.o
 
 LINK_LIST=\
 $(LDFLAGS) \

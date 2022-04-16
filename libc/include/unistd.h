@@ -2,9 +2,6 @@
 #define _UNISTD_H
 #include <sys/types.h>
 #include <syscall.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 int execv(const char*, char* const[]);
 int execve(const char*, char* const[], char* const[]);
 int execvp(const char*, char* const[]);
@@ -15,7 +12,5 @@ pid_t getpid(void);
 int setuid(uid_t);
 int setgid(gid_t);
 int chdir(const char*);
-#ifdef __cplusplus
-}
-#endif
+int chroot(const char* path);
 #endif

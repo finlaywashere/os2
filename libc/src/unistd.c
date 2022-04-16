@@ -34,3 +34,6 @@ int setgid(gid_t gid){
 int chdir(const char* dir){
 	return syscall(27,dir,0,0,0,0);
 }
+int chroot(const char* path){
+	return syscall(26,path,0,0,0,0);
+}

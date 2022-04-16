@@ -11,6 +11,7 @@ struct disk{
 	char name[16];
 	uint32_t type; // Disk type, 0 = IDE, etc
 	uint32_t identifier; // Driver specific identifier to find which disk this represents
+	uint64_t size; // Size in bytes
 	uint8_t (*read_disk) (struct disk *disk, uint64_t lba, uint64_t sectors, uint8_t* buffer);
 	uint8_t (*write_disk) (struct disk *disk, uint64_t lba, uint64_t sectors, uint8_t* buffer);
 };

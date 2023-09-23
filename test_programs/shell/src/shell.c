@@ -102,7 +102,7 @@ void main(){
 		// Make sure the end has atleast 2 null terminators
 		buffer[len] = 0x0;
 		size_t curr = 0;
-		char** args = (char**) malloc(sizeof(char*)*count);
+		char** args = (char**) malloc(sizeof(char*)*(count + 1));
 		for(size_t i = 0; i < count; i++){
 			char* new_buffer = &buffer[curr];
 			args[i] = new_buffer;

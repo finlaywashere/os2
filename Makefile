@@ -10,9 +10,9 @@ QEMUFLAGS = --no-reboot \
 -drive id=disk,file=disk.iso,if=none \
 -device ahci,id=ahci  \
 -device ide-hd,drive=disk,bus=ahci.0 \
--device qemu-xhci \
--machine accel=kvm \
--cpu host
+-device qemu-xhci
+#-machine accel=kvm \
+#-cpu host
 
 TRACE = -d guest_errors,unimp
 

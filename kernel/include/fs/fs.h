@@ -17,6 +17,7 @@ struct fs_node{
 	uint64_t length; // In bytes
 	uint64_t uid;
 	uint64_t gid;
+	uint64_t perms;
 	struct fs_node* parent;
 	uint8_t (*read_file) (struct fs_node *file, uint64_t offset, uint64_t count, uint8_t* buffer);
 	uint8_t (*read_dir) (struct fs_node *file, struct fs_node* buffer);
@@ -35,6 +36,9 @@ struct user_fs_node{
 	uint64_t creation_time;
 	uint64_t modification_time;
 	uint64_t length; // in bytes
+	uint64_t uid;
+	uint64_t gid;
+	uint64_t perms;
 	uint8_t exists;
 }__attribute__((packed));
 typedef struct user_fs_node user_fs_node_t;

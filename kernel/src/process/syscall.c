@@ -384,7 +384,7 @@ void syscall_register_signal(registers_t* regs){
 }
 void syscall(registers_t* regs){
 	asm volatile("cli");
-	if(regs->rax > 63 || regs -> rax < 0){
+	if(regs->rax > 31 || regs -> rax < 0){
 		regs->rax = 0;
 		asm volatile("sti");
 		return;

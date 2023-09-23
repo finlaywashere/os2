@@ -18,6 +18,9 @@ struct file_info{
 	uint64_t creation_time;
 	uint64_t modification_time;
 	uint64_t length; // in bytes
+	uint64_t uid;
+	uint64_t gid;
+	uint64_t perms;
 	uint8_t exists;
 }__attribute__((packed));
 typedef struct file_info file_info_t;

@@ -87,6 +87,8 @@ int process_error(registers_t *regs){
 		log_error(" encountered an error and has been killed!\n");
 		log_error("Error code 0x");
 		log_error_num(regs->error,16);
+		log_error(" ");
+		log_error_num(regs->rip,16);
 		log_error("!\n");
 		// Kill process and schedule new one in its place
 		kill_process(curr_process);

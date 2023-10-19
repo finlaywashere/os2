@@ -109,13 +109,12 @@ void syscall_mmap(registers_t* regs){
 	}
 	
 	if(flags & MAP_ANONYMOUS){
-		uint64_t size_rounded = length-length%0x200000+(length%0x200000 > 0 ? 0x200000 : 0);
-		uint64_t alloc_addr = kmalloc_pa(size_rounded,0x200000);
+		uint64_t alloc_addr = kmalloc_pa(length,0x200000);
 		uint32_t page_flags = 0b101;
 		if(flags & PROT_WRITE)
 			page_flags |= 0b10;
 		
-		map_pages(get_physical_addr(alloc_addr),addr,0b111,size_rounded);
+		map_pages(get_physical_addr(alloc_addr),addr,0b111,length);
 		return;
 	}else{
 		process_t* process = get_process();
